@@ -1,0 +1,58 @@
+{
+    "1": {
+        "categories": [
+            {
+                "id": 1,
+                "description": "WET WEATHER",
+                "words": ["HAIL", "RAIN", "SLEET", "SNOW"],
+                "color": "#fbd400"
+            },
+            {
+                "id": 2,
+                "description": "NBA TEAMS",
+                "words": ["BUCKS", "HEAT", "JAZZ", "NETS"],
+                "color": "#69e352"
+            },
+            {
+                "id": 3,
+                "description": "KEYBOARD KEYS",
+                "words": ["OPTION", "RETURN", "SHIFT", "TAB"],
+                "color": "#5492ff"
+            },
+            {
+                "id": 4,
+                "description": "PALINDROMES",
+                "words": ["KAYAK", "LEVEL", "MOM", "RACE CAR"],
+                "color": "#df7bea"
+            }
+        ]
+    },
+    "2": {
+        "categories": [
+            {
+                "id": 1,
+                "description": "FOOTWEAR",
+                "words": ["BOOT", "LOAFER", "PUMP", "SNEAKER"],
+                "color": "#fbd400"
+            },
+            {
+                "id": 2,
+                "description": "UNITS OF LENGTH",
+                "words": ["FOOT", "LEAGUE", "MILE", "YARD"],
+                "color": "#69e352"
+            },
+            {
+                "id": 3,
+                "description": "MAGAZINES",
+                "words": ["ESSENCE", "PEOPLE", "TIME", "US"],
+                "color": "#5492ff"
+            },
+            {
+                "id": 4,
+                "description": "LETTER HOMOPHONES",
+                "words": ["ARE", "QUEUE", "SEA", "WHY"],
+                "color": "#df7bea"
+            }
+        ]
+    }
+}

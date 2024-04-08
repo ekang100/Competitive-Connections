@@ -1,3 +1,36 @@
+///////////// --> data model for connections
+import * as puzzlesData from "../public/puzzles.json";
+
+
+export interface PuzzleCategory{
+  id: number
+  description: string;
+  words: string[];
+  color: string;
+}
+export interface Puzzle {
+  id: string
+  categories: PuzzleCategory[]
+}
+
+// export const CATEGORY = ["1", "2", "3", "4"]
+export type tileId = string
+export const allPuzzles: Puzzle[] = Object.entries(puzzlesData).map(([id, puzzle]) => ({
+  id,
+  categories: puzzle.categories,
+}));
+
+export interface Tile{
+  id: tileId
+  categoryNum: number //this gonna be the category that they are attributed to
+  selected: boolean | null
+  matched: boolean | null
+  playerIndex: number | null
+}
+
+
+
+
 ////////////////////////////////////////////////////////////////////////////////////////////
 // data model for cards and game state
 

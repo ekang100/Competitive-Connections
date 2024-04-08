@@ -2,9 +2,34 @@ import http from "http"
 import { Server } from "socket.io"
 import { Action, createEmptyGame, doAction, filterCardsForPlayerPerspective, Card } from "./model"
 
+import {Puzzle, PuzzleCategory, tileId, allPuzzles, Tile} from "./model"
+
+
+
 const server = http.createServer()
 const io = new Server(server)
 const port = 8101
+
+//here is where you load up the puzzle from puzzles.json
+
+//            SOMETHING IS MESSING UP EVERYONCE INA WHILE: ID: 'DEFAULT' ???
+const randomIndex = Math.floor(Math.random() * allPuzzles.length);
+const randomPuzzleId = allPuzzles[randomIndex].id;
+const randomPuzzle = allPuzzles.find(puzzle => puzzle.id === randomPuzzleId);
+
+if (randomPuzzle) {
+  console.log(`ID: ${randomPuzzle.id}`);
+  randomPuzzle.categories.forEach((category) => {
+    console.log(`  ${category.description}:`);
+    category.words.forEach((word) => {
+      console.log(`    ${word}`);
+    });
+  });
+} else {
+  console.log('Puzzle not found!');
+}
+
+
 
 let gameState = createEmptyGame(["player1", "player2"], 2, 2)
 
