@@ -52,7 +52,7 @@ export interface GameState {
   tilesById: Record<tileId, Tile>;
   playersCompleted: string[];
   phase: GamePhase;
-  playerLives: Record<string, number>; // Track player lives
+  playerLives: Record<number, number>; // Track player lives, index to index
   categoriesPlayersCompleted: Record<number, number>; //tracks number of categories a player completed
   timeRemaining: number; // Time remaining in seconds
 }
@@ -115,45 +115,123 @@ function printPuzzle(puzzle: Puzzle): void {
 //  * creates an empty GameState in the initial-card-dealing state
 //  */
 
+// Modified createEmptyGame function
 
 export function createEmptyGame(playerNames: string[]): GameState {
-  const tilesById: Record<tileId, Tile> = {};
-  const initialPlayerLives: Record<string, number> = {};
-  const categoriesPlayersCompleted: Record<number, number> = {};
-
-  // Initialize player lives and categories completed for each player
-  playerNames.forEach(name => {
-    initialPlayerLives[name] = 4; // Initialize each player with 3 lives
-    categoriesPlayersCompleted[name] = 0; // Initialize categories completed for each player to 0
-  });
-
-  // Initialize tiles
-  const numberOfTiles = playerNames.length * 16; // Adjust as needed
-  const categoryNums = [1, 2, 3, 4]; // Example category numbers
+  // Get a random puzzle
+  const randomPuzzle = getRandomPuzzle();
   
-  let tileid = 0
-
-  for (let i = 0; i < numberOfTiles; i++) {
-    const tile: Tile = {
-      id: String(tileid++), // Generate unique ID for each tile
-      clue: 
-      categoryNum: categoryNums[i % categoryNums.length], // Assign category number cyclically
-      selected: null,
-      matched: null,
-      playerIndex: null,
-    };
-    tilesById[tile.id] = tile;
+  // If no puzzle is found, return null
+  if (!randomPuzzle) {
+    console.log('Puzzle not found!');
+    return null;
   }
 
-  return {
+  // Initialize other game state properties
+  const tilesById: Record<tileId, Tile> = {};
+  const initialPlayerLives: Record<number, number> = {};
+  const categoriesPlayersCompleted: Record<number, number> = {};
+  // Initialize tiles based on puzzle categories and clues
+  playerNames.forEach((_, playerIndex) => { // Use playerIndex instead of name
+    initialPlayerLives[playerIndex] = 4; // Set initial lives to 4 for each player using playerIndex
+    categoriesPlayersCompleted[playerIndex] = 0;
+  });
+  const tiles: Tile[] = [];
+  
+  // Iterate through each player
+  playerNames.forEach((name, playerIndex) => {
+    // Iterate through each category
+    randomPuzzle.categories.forEach((category) => {
+      // Iterate through each word in the category
+      category.words.forEach((word, wordIndex) => {
+        const tile: Tile = {
+          id: `tile_${category.id}_${wordIndex}_${name}`, // Generate unique tile ID including player name
+          categoryNum: category.id,
+          selected: false,
+          matched: false,
+          playerIndex: playerIndex,
+          clue: category.words[wordIndex], // Assign clue to the tile
+        };
+        tiles.push(tile);
+        tilesById[tile.id] = tile;
+      });
+    });
+  });
+
+  // Create the game state
+  const gameState: GameState = {
     playerNames,
     tilesById,
     playersCompleted: [],
     phase: "pre-game",
     playerLives: initialPlayerLives,
     categoriesPlayersCompleted,
-    timeRemaining: 300, // 5 minutes initially
+    timeRemaining: 120,
   };
+
+  // Print puzzle details
+  printPuzzle(randomPuzzle);
+
+  // Return the game state
+  return gameState;
+}
+
+
+export function formatTile(tile: Tile): string {
+  let formattedTile = "";
+  const clue = tile.clue;
+
+  // Format clue in the middle of the tile
+    formattedTile += "┌─────┐\n";
+    formattedTile += `│ ${clue.padEnd(5)} │\n`; // Ensure clue is padded to fit the box
+    formattedTile += "└─────┘\n";
+
+  return formattedTile;
+}
+
+
+export function doAction(state: GameState, playerIndex: number): void {
+  if (state.phase === "game-over") {
+    // Game is already over
+    return;
+  }
+  
+  // Assuming the player's action is to submit tiles
+  const submittedTiles: Tile[] = [];
+
+  // Collect submitted tiles
+  Object.values(state.tilesById).forEach(tile => {
+    if (tile.selected && !tile.matched && tile.playerIndex === playerIndex) {
+      submittedTiles.push(tile);
+    }
+  });
+
+  // Check if submitted tiles match the puzzle
+  if (matchingPuzzle(submittedTiles)) {
+    // Mark submitted tiles as matched and unselect them
+    submittedTiles.forEach(tile => {
+      tile.matched = true;
+      tile.selected = false;
+    });
+
+    // Decrease the number of categories remaining for the player
+    state.categoriesPlayersCompleted[playerIndex]++;
+
+    // Check if the player has matched all categories
+    const allCategoriesMatched = Object.values(state.categoriesPlayersCompleted).every(count => count === state.playerNames.length);
+
+    // If all categories matched for all players, end the game
+    if (allCategoriesMatched) {
+      state.phase = "game-over";
+    }
+  }
+
+  // Check for winner after each action
+  const winner = determineWinner(state);
+  if (winner !== null) {
+    // Set game phase to "game-over" if there is a winner
+    state.phase = "game-over";
+  }
 }
 
 
@@ -162,27 +240,27 @@ export function createEmptyGame(playerNames: string[]): GameState {
 ////////////////////////////////////////////////////////////////////////////////////////////
 // data model for cards and game state
 
-export const RANKS = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"]
-export const SUITS = ["♦️", "♥️", "♣️", "♠️"]
+// export const RANKS = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"]
+// export const SUITS = ["♦️", "♥️", "♣️", "♠️"]
 
-export type CardId = string
-export type LocationType = "unused" | "last-card-played" | "player-hand"
+// export type CardId = string
+// export type LocationType = "unused" | "last-card-played" | "player-hand"
 
-export interface Card {
-  id: CardId
-  rank: typeof RANKS[number]
-  suit: typeof SUITS[number]
-  locationType: LocationType
-  playerIndex: number | null
-  positionInLocation: number | null
-}
+// export interface Card {
+//   id: CardId
+//   rank: typeof RANKS[number]
+//   suit: typeof SUITS[number]
+//   locationType: LocationType
+//   playerIndex: number | null
+//   positionInLocation: number | null
+// }
 
 /**
  * determines whether one can play a card given the last card played
  */
-export function areCompatible(card: Card, lastCardPlayed: Card) {
-  return card.rank === lastCardPlayed.rank || card.suit === lastCardPlayed.suit
-}
+// export function areCompatible(card: Card, lastCardPlayed: Card) {
+//   return card.rank === lastCardPlayed.rank || card.suit === lastCardPlayed.suit
+// }
 
 
 
@@ -199,30 +277,30 @@ export function areCompatible(card: Card, lastCardPlayed: Card) {
 
 /**
  * @returns an array of the number of the cards in each player's hand
- */
-export function computePlayerCardCounts({ playerNames, cardsById }: GameState) {
-  const counts = playerNames.map(_ => 0)
-  Object.values(cardsById).forEach(({ playerIndex }) => {
-    if (playerIndex != null) {
-      ++counts[playerIndex]
-    }
-  })
-  return counts
-}
+//  */
+// export function computePlayerCardCounts({ playerNames, cardsById }: GameState) {
+//   const counts = playerNames.map(_ => 0)
+//   Object.values(cardsById).forEach(({ playerIndex }) => {
+//     if (playerIndex != null) {
+//       ++counts[playerIndex]
+//     }
+//   })
+//   return counts
+// }
 
 /**
  * finds the last played card
- */
-export function getLastPlayedCard(cardsById: Record<CardId, Card>) {
-  return Object.values(cardsById).find(c => c.locationType === "last-card-played") || null
-}
+//  */
+// export function getLastPlayedCard(cardsById: Record<CardId, Card>) {
+//   return Object.values(cardsById).find(c => c.locationType === "last-card-played") || null
+// }
 
 /**
  * extracts the cards that are currently in the given player's hand
- */
- export function extractPlayerCards(cardsById: Record<CardId, Card>, playerIndex: number): Card[] {
-  return Object.values(cardsById).filter(({ playerIndex: x }) => x === playerIndex)
-}
+//  */
+//  export function extractPlayerCards(cardsById: Record<CardId, Card>, playerIndex: number): Card[] {
+//   return Object.values(cardsById).filter(({ playerIndex: x }) => x === playerIndex)
+// }
 
 /**
  * determines if someone has won the game -- i.e., has no cards left in their hand
@@ -270,145 +348,146 @@ export function getLastPlayedCard(cardsById: Record<CardId, Card>) {
 /**
  * looks through the cards for a random card in the unused state -- 
  * basically, equivalent to continuously shuffling the deck of discarded cards
- */
-export function findNextCardToDraw(cardsById: Record<CardId, Card>): CardId | null {
-  const unplayedCardIds = Object.keys(cardsById).filter(cardId => cardsById[cardId].locationType === "unused")
-  if (unplayedCardIds.length === 0) {
-    return null
-  }
-  return unplayedCardIds[Math.floor(Math.random() * unplayedCardIds.length)]
-}
+//  */
+
+// export function findNextCardToDraw(cardsById: Record<CardId, Card>): CardId | null {
+//   const unplayedCardIds = Object.keys(cardsById).filter(cardId => cardsById[cardId].locationType === "unused")
+//   if (unplayedCardIds.length === 0) {
+//     return null
+//   }
+//   return unplayedCardIds[Math.floor(Math.random() * unplayedCardIds.length)]
+// }
 
 ////////////////////////////////////////////////////////////////////////////////////////////
 // player actions
 
-export interface DrawCardAction {
-  action: "draw-card"
-  playerIndex: number
-}
+// export interface DrawCardAction {
+//   action: "draw-card"
+//   playerIndex: number
+// }
 
-export interface PlayCardAction {
-  action: "play-card"
-  playerIndex: number
-  cardId: CardId
-}
+// export interface PlayCardAction {
+//   action: "play-card"
+//   playerIndex: number
+//   cardId: CardId
+// }
 
-export type Action = DrawCardAction | PlayCardAction
+// export type Action = DrawCardAction | PlayCardAction
 
-function moveToNextPlayer(state: GameState) {
-  state.currentTurnPlayerIndex = (state.currentTurnPlayerIndex + 1) % state.playerNames.length
-}
+// function moveToNextPlayer(state: GameState) {
+//   state.currentTurnPlayerIndex = (state.currentTurnPlayerIndex + 1) % state.playerNames.length
+// }
 
-function moveCardToPlayer({ currentTurnPlayerIndex, cardsById }: GameState, card: Card) {
-  // add to end position
-  const currentCardPositions = extractPlayerCards(cardsById, currentTurnPlayerIndex).map(x => x.positionInLocation)
+// function moveCardToPlayer({ currentTurnPlayerIndex, cardsById }: GameState, card: Card) {
+//   // add to end position
+//   const currentCardPositions = extractPlayerCards(cardsById, currentTurnPlayerIndex).map(x => x.positionInLocation)
 
-  // update state
-  card.locationType = "player-hand"
-  card.playerIndex = currentTurnPlayerIndex
-  card.positionInLocation = Math.max(-1, ...currentCardPositions) + 1
-}
+//   // update state
+//   card.locationType = "player-hand"
+//   card.playerIndex = currentTurnPlayerIndex
+//   card.positionInLocation = Math.max(-1, ...currentCardPositions) + 1
+// }
 
-function moveCardToLastPlayed({ currentTurnPlayerIndex, cardsById }: GameState, card: Card) {
-  // change current last-card-played to unused
-  Object.values(cardsById).forEach(c => {
-    if (c.locationType === "last-card-played") {
-      c.locationType = "unused"
-    }
-  })
+// function moveCardToLastPlayed({ currentTurnPlayerIndex, cardsById }: GameState, card: Card) {
+//   // change current last-card-played to unused
+//   Object.values(cardsById).forEach(c => {
+//     if (c.locationType === "last-card-played") {
+//       c.locationType = "unused"
+//     }
+//   })
 
-  // update state
-  card.locationType = "last-card-played"
-  card.playerIndex = null
-  card.positionInLocation = null
-}
+//   // update state
+//   card.locationType = "last-card-played"
+//   card.playerIndex = null
+//   card.positionInLocation = null
+// }
 
-/**
- * updates the game state based on the given action
- * @returns an array of cards that were updated, or an empty array if the action is disallowed
- */
-export function doAction(state: GameState, action: Action): Card[] {
-  const changedCards: Card[] = []
-  if (state.phase === "game-over") {
-    // game over already
-    return []
-  }
-  if (action.playerIndex !== state.currentTurnPlayerIndex) {
-    // not your turn
-    return []
-  }
+// /**
+//  * updates the game state based on the given action
+//  * @returns an array of cards that were updated, or an empty array if the action is disallowed
+//  */
+// export function doAction(state: GameState, action: Action): Card[] {    //this is needed
+//   const changedCards: Card[] = []
+//   if (state.phase === "game-over") {
+//     // game over already
+//     return []
+//   }
+//   if (action.playerIndex !== state.currentTurnPlayerIndex) {
+//     // not your turn
+//     return []
+//   }
 
-  if (action.action === "draw-card") {
-    const cardId = findNextCardToDraw(state.cardsById)
-    if (cardId == null) {
-      return []
-    }
-    const card = state.cardsById[cardId]
-    moveCardToPlayer(state, card)
-    changedCards.push(card)
-  }
+//   if (action.action === "draw-card") {
+//     const cardId = findNextCardToDraw(state.cardsById)
+//     if (cardId == null) {
+//       return []
+//     }
+//     const card = state.cardsById[cardId]
+//     moveCardToPlayer(state, card)
+//     changedCards.push(card)
+//   }
 
-  if (state.phase === "initial-card-dealing") {
-    if (action.action !== "draw-card") {
-      return []
-    }
+//   if (state.phase === "initial-card-dealing") {
+//     if (action.action !== "draw-card") {
+//       return []
+//     }
 
-    const counts = computePlayerCardCounts(state)
-    if (Math.max(...counts) === Math.min(...counts) && counts[0] === 3) {
-      // we are done drawing player cards
-      // draw one card to be the last card played
-      const cardId = findNextCardToDraw(state.cardsById)
-      if (cardId == null) {
-        return []
-      }
-      const card = state.cardsById[cardId]
-      moveCardToLastPlayed(state, card)
-      changedCards.push(card)
-      state.phase = "play"
-    }
-    moveToNextPlayer(state)
-  } else if (action.action === "play-card") {
-    const card = state.cardsById[action.cardId]
-    if (card.playerIndex !== state.currentTurnPlayerIndex) {
-      // not your card
-      return []
-    }
-    const lastPlayedCard = getLastPlayedCard(state.cardsById)
-    if (lastPlayedCard == null) {
-      return []
-    }
-    if (!areCompatible(lastPlayedCard, card)) {
-      return []
-    }
-    changedCards.push(lastPlayedCard)
-    moveCardToLastPlayed(state, card)
-    changedCards.push(card)
-  }
+//     const counts = computePlayerCardCounts(state)
+//     if (Math.max(...counts) === Math.min(...counts) && counts[0] === 3) {
+//       // we are done drawing player cards
+//       // draw one card to be the last card played
+//       const cardId = findNextCardToDraw(state.cardsById)
+//       if (cardId == null) {
+//         return []
+//       }
+//       const card = state.cardsById[cardId]
+//       moveCardToLastPlayed(state, card)
+//       changedCards.push(card)
+//       state.phase = "play"
+//     }
+//     moveToNextPlayer(state)
+//   } else if (action.action === "play-card") {
+//     const card = state.cardsById[action.cardId]
+//     if (card.playerIndex !== state.currentTurnPlayerIndex) {
+//       // not your card
+//       return []
+//     }
+//     const lastPlayedCard = getLastPlayedCard(state.cardsById)
+//     if (lastPlayedCard == null) {
+//       return []
+//     }
+//     if (!areCompatible(lastPlayedCard, card)) {
+//       return []
+//     }
+//     changedCards.push(lastPlayedCard)
+//     moveCardToLastPlayed(state, card)
+//     changedCards.push(card)
+//   }
 
-  if (state.phase === "play" && action.action !== "draw-card") {
-    moveToNextPlayer(state)
-  }
+//   if (state.phase === "play" && action.action !== "draw-card") {
+//     moveToNextPlayer(state)
+//   }
 
-  if (determineWinner(state) != null) {
-    state.phase = "game-over"
-  }
+//   if (determineWinner(state) != null) {
+//     state.phase = "game-over"
+//   }
 
-  ++state.playCount
+//   ++state.playCount
 
-  return changedCards
-}
+//   return changedCards
+// }
 
-export function formatCard(card: Card, includeLocation = false) {
-  let paddedCardId = card.id
-  while (paddedCardId.length < 3) {
-    paddedCardId = " " + paddedCardId
-  }
-  return `[${paddedCardId}] ${card.rank}${card.suit}${(card.rank.length === 1 ? " " : "")}`
-    + (includeLocation
-      ? ` ${card.locationType} ${card.playerIndex ?? ""}`
-      : ""
-    )
-}
+// export function formatCard(card: Card, includeLocation = false) {
+//   let paddedCardId = card.id
+//   while (paddedCardId.length < 3) {
+//     paddedCardId = " " + paddedCardId
+//   }
+//   return `[${paddedCardId}] ${card.rank}${card.suit}${(card.rank.length === 1 ? " " : "")}`
+//     + (includeLocation
+//       ? ` ${card.locationType} ${card.playerIndex ?? ""}`
+//       : ""
+//     )
+// }
 
 export function printState({ playerNames, cardsById, currentTurnPlayerIndex, phase, playCount }: GameState) {
   const lastPlayedCard = getLastPlayedCard(cardsById)

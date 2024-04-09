@@ -8,7 +8,7 @@
       :key="card.id"
       @click="playCard(card.id)"
     >
-      <pre>{{ formatCard(card, true) }}</pre>
+      <pre>{{ formatTile(card, true) }}</pre>
     </div>
     <b-button class="mx-2 my-2" size="sm" @click="drawCard" :disabled="!myTurn">Draw Card</b-button>
   </div>
@@ -17,7 +17,8 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, Ref } from 'vue'
 import { io } from "socket.io-client"
-import { Card, GamePhase, Action, formatCard, CardId } from "../../../server/model"
+import { Card, Tile, formatTile, GamePhase, Action, formatCard, CardId } from "../../../server/model"
+
 
 const socket = io()
 const playerIndex: Ref<number | "all"> = ref("all")
