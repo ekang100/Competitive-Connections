@@ -8,7 +8,7 @@
     "moduleResolution": "node",
     "target": "es2021",
     "esModuleInterop": true,
-    "resolveJsonModule": true,
+    "resolveJsonModule": true, // this is not in the new example
 
   }
 }

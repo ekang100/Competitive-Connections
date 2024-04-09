@@ -12,11 +12,11 @@ const routes = [
 	{
 		path: "/:playerIndex",
 		component: Game,
-		props (route) {
-			return {
-				playerIndex: route.params.playerIndex
-			}
-		}
+		// props (route) {
+		// 	return {
+		// 		playerIndex: route.params.playerIndex
+		// 	}
+		// }
 	}
 ]
 
