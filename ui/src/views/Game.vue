@@ -7,6 +7,7 @@
       v-for="tile in tiles"
       :key="tile.id"
       @click="playTile(tile.id)"
+      :style="{ backgroundColor: tile.selected ? '#f0f0f0' : 'transparent' }"
     >
       <pre>{{ formatTile(tile) }}</pre>
     </div>
@@ -19,16 +20,17 @@ import { computed, onMounted, ref, Ref } from 'vue'
 import { io } from "socket.io-client"
 import { Tile, formatTile, GamePhase, tileId } from "../../../server/model"
 
+const MAX_SELECTED_TILES = 4;
 
 const socket = io()
 const playerIndex: Ref<number | "all"> = ref("all")
 
 const tiles: Ref<Tile[]> = ref([])
-const currentTurnPlayerIndex = ref(-1)
+// const currentTurnPlayerIndex = ref(-1)
 const phase = ref("")
 // const playCount = ref(-1)
 
-const myTurn = computed(() => currentTurnPlayerIndex.value === playerIndex.value && phase.value !== "game-over")
+// const myTurn = computed(() => currentTurnPlayerIndex.value === playerIndex.value && phase.value !== "game-over")
 
 socket.on("all-tiles", (allTiles: Tile[]) => {
   tiles.value = allTiles
@@ -65,8 +67,26 @@ function doAction() {
 //   }
 // }
 
-async function playTile(TileId: tileId) {           //fix this
+async function playTile(TileId: tileId) {
+
+  
   if (typeof playerIndex.value === "number") {
+    // Count the number of currently selected tiles
+    const selectedTilesCount = tiles.value.filter(tile => tile.selected).length;
+
+    // Check if the maximum limit of selected tiles is reached
+    if (selectedTilesCount >= MAX_SELECTED_TILES) {
+      alert("You can only select up to 4 tiles.");
+      return;
+    }
+    else {
+      const tileToSelect = tiles.value.find(tile => tile.id === TileId);
+      if (tileToSelect) {
+        tileToSelect.selected = true;
+      }
+    }
+
+
     const updatedCards = await doAction()
     if (updatedCards.length === 0) {
       alert("didn't work")
@@ -74,7 +94,7 @@ async function playTile(TileId: tileId) {           //fix this
   }
 }
 
-async function applyUpdatedCards(updatedCards: Tile[]) {        //fix this too
+async function applyUpdatedCards(updatedCards: Tile[]) {
   for (const x of updatedCards) {
     const existingCard = tiles.value.find(y => x.id === y.id)
     if (existingCard) {

@@ -102,8 +102,9 @@ io.use(wrap(sessionMiddleware))
 
 
 // hard-coded game configuration
-const playerUserIds = ["hm222", "ys385"]
+const playerUserIds = ["anthony.cui", "ellie.kang"]
 let gameState = createEmptyGame(playerUserIds)
+
 
 function emitUpdatedTilesForPlayers(tiles: Tile[], newGame = false) {   
   gameState.playerNames.forEach((_, i) => {
@@ -130,7 +131,7 @@ io.on('connection', client => {
   function emitGameState() {        ///?????? do i keep this here
     client.emit(
       "game-state", 
-      // playerIndex,
+      playerIndex,
       // gameState.currentTurnPlayerIndex,
       gameState.phase,
       // gameState.playCount,
