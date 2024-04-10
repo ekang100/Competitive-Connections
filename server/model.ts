@@ -179,24 +179,17 @@ export function createEmptyGame(playerNames: string[]): GameState {
 
 
 export function formatTile(tile: Tile): string {
-  let formattedTile = "";
-  const clue = tile.clue;
-
-  // Format clue in the middle of the tile
-    formattedTile += "┌─────┐\n";
-    formattedTile += `│ ${clue.padEnd(5)} │\n`; // Ensure clue is padded to fit the box
-    formattedTile += "└─────┘\n";
-
-  return formattedTile;
+  return tile.clue
 }
 
 
-export function doAction(state: GameState, playerIndex: number): Tile[] {
+export function doAction(state: GameState, playerIndex: number): Tile[] {         //need to have a check for matched tiles
   if (state.phase === "game-over") {
     // Game is already over
     return;
   }
-  
+
+console.log('checkpoint2')  
   // Assuming the player's action is to submit tiles
   const submittedTiles: Tile[] = [];
 
@@ -207,6 +200,7 @@ export function doAction(state: GameState, playerIndex: number): Tile[] {
     }
   });
 
+  console.log('these are the tiles you submitted', submittedTiles)
   // Check if submitted tiles match the puzzle
   if (matchingPuzzle(submittedTiles)) {
     // Mark submitted tiles as matched and unselect them
@@ -218,18 +212,21 @@ export function doAction(state: GameState, playerIndex: number): Tile[] {
 
     // Decrease the number of categories remaining for the player
     state.categoriesPlayersCompleted[playerIndex]++;
-
+    console.log('number of categories left:', state.categoriesPlayersCompleted[playerIndex])
+  
     // Check if the player has matched all categories
     const allCategoriesMatched = Object.values(state.categoriesPlayersCompleted).every(count => count === state.playerNames.length);
 
     // If all categories matched for all players, end the game
-    if (allCategoriesMatched) {
+    if (state.categoriesPlayersCompleted[playerIndex] == 4) {
+      console.log('game is over!!!!!')
       state.phase = "game-over";
     }
   }
 
   // Check for winner after each action
   const winner = determineWinner(state);
+  console.log('this is your current winner:', winner)
   if (winner !== null) {
     // Set game phase to "game-over" if there is a winner
     state.phase = "game-over";
@@ -237,7 +234,7 @@ export function doAction(state: GameState, playerIndex: number): Tile[] {
   }
 
     // Return tiles that are not yet matched
-    return Object.values(state.tilesById).filter(tile => !tile.matched);
+    return Object.values(state.tilesById);
 }
 
 /**

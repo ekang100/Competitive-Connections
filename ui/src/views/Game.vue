@@ -1,19 +1,51 @@
 <template>
   <div>
     <b-button class="mx-2 my-2" size="sm" @click="socket.emit('new-game')">New Game</b-button>
-    <!-- <b-badge class="mr-2 mb-2" :variant="myTurn ? 'primary' : 'secondary'">turn: {{ currentTurnPlayerIndex }}</b-badge> -->
     <b-badge class="mr-2 mb-2">{{ phase }}</b-badge>
-    <div
-      v-for="tile in tiles"
-      :key="tile.id"
-      @click="playTile(tile.id)"
-      :style="{ backgroundColor: tile.selected ? '#f0f0f0' : 'transparent' }"
-    >
-      <pre>{{ formatTile(tile) }}</pre>
+    <div class="board">
+      <span
+        v-for="tile in tiles"
+        :key="tile.id"
+        @click="playTile(tile.id)"
+        class="tile"
+        :style="{
+          backgroundColor: tile.selected ? '#f0f0f0' : tile.matched ? 'blue' : 'transparent'
+        }"
+      >
+        <pre style="margin: auto; text-align: center;align-items: center; justify-content: center; display: flex;  padding-top: 40px; ">{{ formatTile(tile) }}</pre>
+      </span>
     </div>
-    <!-- <b-button class="mx-2 my-2" size="sm" @click="drawCard" :disabled="!myTurn">Draw Card</b-button> -->
+    <b-button class="mx-2 my-2" size="sm" @click="submitAction" :disabled="!canSubmit">Submit</b-button>
   </div>
 </template>
+
+<style scoped>
+  .board {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr); /* 4 columns */
+    gap: 5px; /* Adjust gap as needed */
+    justify-content: center;
+  }
+  
+  .tile {
+    display: block;
+    width: 50px; /* Adjust width as needed */
+    height: 50px; /* Adjust height as needed */
+    border: 1px solid black; /* Add border for better visualization */
+    cursor: pointer; /* Change cursor to pointer on hover */
+  }
+</style>
+
+<style scoped>
+  .tile {
+    display: inline-block;
+    width: 100px; /* Adjust width as needed */
+    height: 100px; /* Adjust height as needed */
+    margin: 5px; /* Adjust margin as needed */
+    border: 1px solid black; /* Add border for better visualization */
+    cursor: pointer; /* Change cursor to pointer on hover */
+  }
+</style>
 
 <script setup lang="ts">
 import { computed, onMounted, ref, Ref } from 'vue'
@@ -51,7 +83,7 @@ socket.on("game-state", (newPlayerIndex: number, newPhase: GamePhase) => {
 
 function doAction() {              
   return new Promise<Tile[]>((resolve, reject) => {
-    socket.emit("action", playerIndex)
+    socket.emit("action", playerIndex.value)
     socket.once("updated-tiles", (updatedCards: Tile[]) => {
       resolve(updatedCards)
     })
@@ -82,28 +114,28 @@ async function playTile(TileId: tileId) {
       return;
     }
 
-
     const selectedTilesCount = tiles.value.filter(tile => tile.selected).length;
-
     if(tileToSelect.selected && !tileToSelect.matched){
       tileToSelect.selected=false;
+      socket.emit("selected-tile",tileToSelect)
     }
     else if (selectedTilesCount >= MAX_SELECTED_TILES) {
       alert("You can only select up to 4 tiles.");
       return;
     }
-    else {
+    else if (!tileToSelect.matched) {
       if (tileToSelect) {
         tileToSelect.selected = true;
+        socket.emit("selected-tile",tileToSelect)
       }
   
     }
 
 
-    const updatedCards = await doAction()
-    if (updatedCards.length === 0) {
-      alert("didn't work")
-    }
+    // const updatedCards = await doAction()
+    // if (updatedCards.length === 0) {
+    //   alert("didn't work")
+    // }
   }
 }
 
@@ -115,6 +147,20 @@ async function applyUpdatedCards(updatedCards: Tile[]) {
     } else {
       tiles.value.push(x)
     }
+  }
+}
+
+
+const canSubmit = computed(() => {
+  const selectedTilesCount = tiles.value.filter(tile => tile.selected).length;
+  return selectedTilesCount === MAX_SELECTED_TILES;
+});
+
+function submitAction() {
+  if (canSubmit.value) {
+    doAction();
+  } else {
+    alert("Please select exactly 4 tiles.");
   }
 }
 </script>

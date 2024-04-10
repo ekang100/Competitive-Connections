@@ -107,17 +107,20 @@ let gameState = createEmptyGame(playerUserIds)
 
 
 function emitUpdatedTilesForPlayers(tiles: Tile[], newGame = false) {   
-  gameState.playerNames.forEach((_, i) => {
-    let updatedCardsFromPlayerPerspective = filterTilesForPlayerPerspective(tiles, i)
-    // if (newGame) {
-    //   updatedCardsFromPlayerPerspective = updatedCardsFromPlayerPerspective.filter(card => card.locationType !== "unused")
-    // }
-    console.log("emitting update for player", i, ":", updatedCardsFromPlayerPerspective)
-    io.to(String(i)).emit(  
-      newGame ? "all-tiles" : "updated-tiles", 
-      updatedCardsFromPlayerPerspective,
-    )
-  })
+  gameState.playerNames.forEach((_, i) => {      
+      let updatedCardsFromPlayerPerspective: Tile[];
+      if (tiles && tiles.length > 0) {
+          updatedCardsFromPlayerPerspective = filterTilesForPlayerPerspective(tiles, i);
+          // if (newGame) {
+          //   updatedCardsFromPlayerPerspective = updatedCardsFromPlayerPerspective.filter(card => card.locationType !== "unused")
+          // }
+      }
+      console.log("emitting update for player", i, ":", updatedCardsFromPlayerPerspective);
+      io.to(String(i)).emit(  
+          newGame ? "all-tiles" : "updated-tiles", 
+          updatedCardsFromPlayerPerspective,
+      );
+  });
 }
 
 io.on('connection', client => {
@@ -160,7 +163,10 @@ io.on('connection', client => {
 
   
   client.on("action", (playerIndex: Number) => {
+    console.log(typeof playerIndex, 'playerIndex: ', playerIndex)
     if (typeof playerIndex === "number") {
+      console.log('checkpoint 1')
+
       const updatedCards = doAction(gameState, playerIndex)
       emitUpdatedTilesForPlayers(updatedCards)
     } else {
@@ -172,6 +178,29 @@ io.on('connection', client => {
     )
     emitGameState()
   })
+
+  client.on("selected-tile", (selectedTile: Tile) => {
+    console.log("Selected tile:", selectedTile);
+  
+    // Update the selected tile in the game state
+    const tileToUpdate = gameState.tilesById[selectedTile.id];
+    if (tileToUpdate) {
+      // Update the properties of the tile with the new values from the client
+      tileToUpdate.selected = selectedTile.selected;
+      // tileToUpdate.matched = selectedTile.matched;
+      // tileToUpdate.playerIndex = selectedTile.playerIndex;
+  
+      // Emit the updated tile to the player who made the selection
+      // client.emit("updated-tile", tileToUpdate);
+  
+      // Emit the updated tile to all players (including the player who made the selection)
+      // io.emit("updated-tile", tileToUpdate);               //do i need this?
+    } else {
+      console.error("Tile not found in game state:", selectedTile.id);
+      // Handle the case where the selected tile is not found in the game state
+      // You may emit an error event or take appropriate action based on your application's logic
+    }
+  });
 
   client.on("new-game", () => {
     gameState = createEmptyGame(gameState.playerNames)
