@@ -223,6 +223,9 @@ console.log('checkpoint2')
       state.phase = "game-over";
     }
   }
+  else{
+    state.playerLives[playerIndex]--;         
+  }
 
   // Check for winner after each action
   const winner = determineWinner(state);
@@ -233,7 +236,6 @@ console.log('checkpoint2')
     return
   }
 
-    // Return tiles that are not yet matched
     return Object.values(state.tilesById);
 }
 

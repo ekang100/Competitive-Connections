@@ -1,5 +1,11 @@
 <template>
   <div>
+    <div v-if="phase === 'game-over'" style="text-align: center; margin-top: 30px;">
+      <h2>Game Over</h2>
+    </div>
+    <div v-for="([playerIndex, lives]) in Object.entries(playerLives)" :key="playerIndex">
+      Player {{ playerIndex }} Lives: {{ lives }}
+    </div>
     <b-button class="mx-2 my-2" size="sm" @click="socket.emit('new-game')">New Game</b-button>
     <b-badge class="mr-2 mb-2">{{ phase }}</b-badge>
     <div class="board">
@@ -57,6 +63,9 @@ const MAX_SELECTED_TILES = 4;
 const socket = io()
 const playerIndex: Ref<number | "all"> = ref("all")
 
+const playerLives: Ref<number[]> = ref([]);
+
+
 const tiles: Ref<Tile[]> = ref([])
 // const currentTurnPlayerIndex = ref(-1)
 const phase = ref("")
@@ -72,12 +81,14 @@ socket.on("updated-tiles", (updatedTiles: Tile[]) => {
   applyUpdatedCards(updatedTiles)
 })
 
-socket.on("game-state", (newPlayerIndex: number, newPhase: GamePhase) => {
+socket.on("game-state", (newPlayerIndex: number, playersLives: Record<number,number> , newPhase: GamePhase) => {
   if (newPlayerIndex != null) {
     playerIndex.value = newPlayerIndex
   }
   // currentTurnPlayerIndex.value = newCurrentTurnPlayerIndex
   phase.value = newPhase
+  playerLives.value = playersLives;
+
   // playCount.value = newPlayCount
 })
 

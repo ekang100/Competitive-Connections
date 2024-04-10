@@ -131,10 +131,11 @@ io.on('connection', client => {
     return
   }
 
-  function emitGameState() {        ///?????? do i keep this here
+  function emitGameState() {      
     client.emit(
       "game-state", 
       playerIndex,
+      gameState.playerLives,
       // gameState.currentTurnPlayerIndex,
       gameState.phase,
       // gameState.playCount,
@@ -210,13 +211,7 @@ io.on('connection', client => {
       "all-tiles", 
       updatedCards,
     )
-    io.emit(                //fix this??
-      "game-state", 
-      playerIndex,
-      // gameState.currentTurnPlayerIndex,
-      gameState.phase,
-      // gameState.playCount,
-    )
+    emitGameState()
   })
 })
 
