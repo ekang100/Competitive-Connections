@@ -179,6 +179,7 @@ io.on('connection', client => {
     )
   })
 
+  // edit this so that only admins can make a new game
   client.on("new-game", () => {
     gameState = createEmptyGame(gameState.playerNames, 1, 2)
     const updatedCards = Object.values(gameState.cardsById)
@@ -214,6 +215,15 @@ app.get("/api/user", (req, res) => {
   res.json(req.user || {})
 })
 
+
+async function fetchGitLabGroups(accessToken: any) {
+  const response = await fetch('https://gitlab.com/api/v4/groups', {
+    headers: { 'Authorization': `Bearer ${accessToken}` }
+  });
+  const data = await response.json();
+  return data.map((group: { full_path: any }) => group.full_path);
+}
+
 // connect to Mongo
 client.connect().then(() => {
   logger.info('connected successfully to MongoDB')
@@ -233,9 +243,32 @@ client.connect().then(() => {
     }
   
     function verify(tokenSet: any, userInfo: any, done: (error: any, user: any) => void) {
-      console.log('userInfo', userInfo)
-      console.log('tokenSet', tokenSet)
-      return done(null, userInfo)
+      // Log the userInfo and tokenSet for debugging
+      console.log('userInfo', userInfo);
+      console.log('tokenSet', tokenSet);
+    
+      // Fetch GitLab groups using an access token
+      fetchGitLabGroups(tokenSet.access_token).then(groups => {
+        userInfo.groups = groups; // Add groups to the userInfo
+    
+        const player = {
+          id: userInfo.sub,
+          username: userInfo.preferred_username || userInfo.nickname,
+          email: userInfo.email,
+          gamesPlayed: 0,
+          groups: groups // Store the groups in the database as part of the player's record
+        };
+    
+        db.collection("players").updateOne(
+          { _id: player.id },
+          { $set: player },
+          { upsert: true }
+        ).then(() => done(null, userInfo))
+          .catch(error => done(error, null));
+      }).catch(error => {
+        console.error('Error fetching groups:', error);
+        done(error, null);
+      });
     }
   
     passport.use('oidc', new Strategy({ client, params }, verify))
