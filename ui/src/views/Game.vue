@@ -72,18 +72,31 @@ async function playTile(TileId: tileId) {
   
   if (typeof playerIndex.value === "number") {
     // Count the number of currently selected tiles
+
+
+    const tileToSelect = tiles.value.find(tile => tile.id === TileId);
+
+        // Check if tileToSelect is undefined
+    if (!tileToSelect) {
+      console.error("Tile not found");
+      return;
+    }
+
+
     const selectedTilesCount = tiles.value.filter(tile => tile.selected).length;
 
-    // Check if the maximum limit of selected tiles is reached
-    if (selectedTilesCount >= MAX_SELECTED_TILES) {
+    if(tileToSelect.selected && !tileToSelect.matched){
+      tileToSelect.selected=false;
+    }
+    else if (selectedTilesCount >= MAX_SELECTED_TILES) {
       alert("You can only select up to 4 tiles.");
       return;
     }
     else {
-      const tileToSelect = tiles.value.find(tile => tile.id === TileId);
       if (tileToSelect) {
         tileToSelect.selected = true;
       }
+  
     }
 
 
