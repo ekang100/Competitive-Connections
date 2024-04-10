@@ -1,6 +1,14 @@
 ///////////// --> data model for connections
 import * as puzzlesData from "../public/puzzles.json";
 
+export interface Player{
+  id: "gitlabUserId",
+  username: "gitlabUsername",
+  email: "userEmail",
+  roles: ["user", "admin"], // Optional, for access control purposes
+  gamesWon: number
+}
+
 
 export interface PuzzleCategory{
   id: number
