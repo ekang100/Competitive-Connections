@@ -10,7 +10,7 @@
     <b-badge class="mr-2 mb-2">{{ phase }}</b-badge>
     <div class="board">
       <span
-        v-for="tile in tiles"
+        v-for="(tile, index) in shuffledTiles"
         :key="tile.id"
         @click="playTile(tile.id)"
         class="tile"
@@ -21,6 +21,7 @@
         <pre style="margin: auto; text-align: center;align-items: center; justify-content: center; display: flex;  padding-top: 40px; ">{{ formatTile(tile) }}</pre>
       </span>
     </div>
+    <b-button class="mx-2 my-2" size="sm" @click="shuffleBoard">Shuffle Board</b-button>
     <b-button class="mx-2 my-2" size="sm" @click="submitAction" :disabled="!canSubmit">Submit</b-button>
   </div>
 </template>
@@ -87,7 +88,7 @@ socket.on("game-state", (newPlayerIndex: number, playersLives: Record<number,num
   }
   // currentTurnPlayerIndex.value = newCurrentTurnPlayerIndex
   phase.value = newPhase
-  playerLives.value = playersLives;
+  playerLives.value = Object.values(playersLives);
 
   // playCount.value = newPlayCount
 })
@@ -174,4 +175,38 @@ function submitAction() {
     alert("Please select exactly 4 tiles.");
   }
 }
+
+const shuffledTiles = computed(() => {
+  // Create a copy of the tiles array
+  const copiedTiles = [...tiles.value];
+  // Shuffle the copied array
+  for (let i = copiedTiles.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [copiedTiles[i], copiedTiles[j]] = [copiedTiles[j], copiedTiles[i]];
+  }
+  return copiedTiles;
+});
+
+function shuffleBoard() {
+  // Randomly shuffle the tiles
+  tiles.value = shuffle(tiles.value);
+}
+
+function shuffle(array: any[]) {
+  let currentIndex = array.length, randomIndex;
+
+  // While there remain elements to shuffle...
+  while (currentIndex !== 0) {
+    // Pick a remaining element...
+    randomIndex = Math.floor(Math.random() * currentIndex);
+    currentIndex--;
+
+    // And swap it with the current element.
+    [array[currentIndex], array[randomIndex]] = [
+      array[randomIndex], array[currentIndex]];
+  }
+
+  return array;
+}
+
 </script>
