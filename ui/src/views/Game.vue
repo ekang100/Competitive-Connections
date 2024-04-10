@@ -157,7 +157,7 @@ async function playTile(TileId: tileId) {
   }
 }
 
-async function applyUpdatedCards(updatedCards: Tile[]) {
+async function applyUpdatedCards(updatedCards: Tile[]) {          //the problem is here i think!!!!
   for (const x of updatedCards) {
     const existingCard = tiles.value.find(y => x.id === y.id)
     if (existingCard) {

@@ -102,7 +102,7 @@ io.use(wrap(sessionMiddleware))
 
 
 // hard-coded game configuration
-const playerUserIds = ["anthony.cui", "ellie.kang"]
+const playerUserIds = ["anthony.cui", "ek199"]
 let gameState = createEmptyGame(playerUserIds)
 
 
