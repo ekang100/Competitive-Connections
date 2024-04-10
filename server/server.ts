@@ -1,6 +1,6 @@
 import { createServer } from "http"
 import { Server } from "socket.io"
-import { Action, createEmptyGame, doAction, filterCardsForPlayerPerspective, Card } from "./model"
+import { createEmptyGame, doAction, filterTilesForPlayerPerspective } from "./model"
 import { Puzzle, PuzzleCategory, tileId, allPuzzles, Tile } from "./model"
 import express, { NextFunction, Request, Response } from 'express'
 import bodyParser from 'body-parser'
@@ -82,38 +82,38 @@ io.use(wrap(sessionMiddleware))
 //here is where you load up the puzzle from puzzles.json
 
 //            SOMETHING IS MESSING UP EVERYONCE INA WHILE: ID: 'DEFAULT' ???
-const randomIndex = Math.floor(Math.random() * allPuzzles.length);
-const randomPuzzleId = allPuzzles[randomIndex].id;
-const randomPuzzle = allPuzzles.find(puzzle => puzzle.id === randomPuzzleId);
+// const randomIndex = Math.floor(Math.random() * allPuzzles.length);
+// const randomPuzzleId = allPuzzles[randomIndex].id;
+// const randomPuzzle = allPuzzles.find(puzzle => puzzle.id === randomPuzzleId);
 
-if (randomPuzzle) {
-  console.log(`ID: ${randomPuzzle.id}`);
-  randomPuzzle.categories.forEach((category) => {
-    console.log(`  ${category.description}:`);
-    category.words.forEach((word) => {
-      console.log(`    ${word}`);
-    });
-  });
-} else {
-  console.log('Puzzle not found!');
-}
+// if (randomPuzzle) {
+//   console.log(`ID: ${randomPuzzle.id}`);
+//   randomPuzzle.categories.forEach((category) => {
+//     console.log(`  ${category.description}:`);
+//     category.words.forEach((word) => {
+//       console.log(`    ${word}`);
+//     });
+//   });
+// } else {
+//   console.log('Puzzle not found!');
+// }
 ////////////////////
 
 
 
 // hard-coded game configuration
 const playerUserIds = ["hm222", "ys385"]
-let gameState = createEmptyGame(playerUserIds, 1, 2)
+let gameState = createEmptyGame(playerUserIds)
 
-function emitUpdatedCardsForPlayers(cards: Card[], newGame = false) {
+function emitUpdatedTilesForPlayers(tiles: Tile[], newGame = false) {   
   gameState.playerNames.forEach((_, i) => {
-    let updatedCardsFromPlayerPerspective = filterCardsForPlayerPerspective(cards, i)
-    if (newGame) {
-      updatedCardsFromPlayerPerspective = updatedCardsFromPlayerPerspective.filter(card => card.locationType !== "unused")
-    }
+    let updatedCardsFromPlayerPerspective = filterTilesForPlayerPerspective(tiles, i)
+    // if (newGame) {
+    //   updatedCardsFromPlayerPerspective = updatedCardsFromPlayerPerspective.filter(card => card.locationType !== "unused")
+    // }
     console.log("emitting update for player", i, ":", updatedCardsFromPlayerPerspective)
-    io.to(String(i)).emit(
-      newGame ? "all-cards" : "updated-cards", 
+    io.to(String(i)).emit(  
+      newGame ? "all-tiles" : "updated-tiles", 
       updatedCardsFromPlayerPerspective,
     )
   })
@@ -127,13 +127,13 @@ io.on('connection', client => {
     return
   }
 
-  function emitGameState() {
+  function emitGameState() {        ///?????? do i keep this here
     client.emit(
       "game-state", 
-      playerIndex,
-      gameState.currentTurnPlayerIndex,
+      // playerIndex,
+      // gameState.currentTurnPlayerIndex,
       gameState.phase,
-      gameState.playCount,
+      // gameState.playCount,
     )
   }
   
@@ -146,51 +146,46 @@ io.on('connection', client => {
   
   if (typeof playerIndex === "number") {
     client.emit(
-      "all-cards", 
-      filterCardsForPlayerPerspective(Object.values(gameState.cardsById), playerIndex).filter(card => card.locationType !== "unused"),
+      "all-tiles", 
+      filterTilesForPlayerPerspective(Object.values(gameState.tilesById), playerIndex)
     )
   } else {
     client.emit(
-      "all-cards", 
-      Object.values(gameState.cardsById),    
+      "all-tiles", 
+      Object.values(gameState.tilesById),    
     )
   }
   emitGameState()
 
-  client.on("action", (action: Action) => {
+  
+  client.on("action", (playerIndex: Number) => {
     if (typeof playerIndex === "number") {
-      const updatedCards = doAction(gameState, { ...action, playerIndex })
-      emitUpdatedCardsForPlayers(updatedCards)
+      const updatedCards = doAction(gameState, playerIndex)
+      emitUpdatedTilesForPlayers(updatedCards)
     } else {
       // no actions allowed from "all"
     }
     io.to("all").emit(
-      "updated-cards", 
-      Object.values(gameState.cardsById),    
+      "updated-tiles", 
+      Object.values(gameState.tilesById),    
     )
-    io.emit(
-      "game-state", 
-      null,
-      gameState.currentTurnPlayerIndex,
-      gameState.phase,
-      gameState.playCount,
-    )
+    emitGameState()
   })
 
   client.on("new-game", () => {
-    gameState = createEmptyGame(gameState.playerNames, 1, 2)
-    const updatedCards = Object.values(gameState.cardsById)
-    emitUpdatedCardsForPlayers(updatedCards, true)
+    gameState = createEmptyGame(gameState.playerNames)
+    const updatedCards = Object.values(gameState.tilesById)
+    emitUpdatedTilesForPlayers(updatedCards, true)
     io.to("all").emit(
-      "all-cards", 
+      "all-tiles", 
       updatedCards,
     )
-    io.emit(
+    io.emit(                //fix this??
       "game-state", 
       playerIndex,
-      gameState.currentTurnPlayerIndex,
+      // gameState.currentTurnPlayerIndex,
       gameState.phase,
-      gameState.playCount,
+      // gameState.playCount,
     )
   })
 })

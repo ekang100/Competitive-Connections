@@ -190,7 +190,7 @@ export function formatTile(tile: Tile): string {
 }
 
 
-export function doAction(state: GameState, playerIndex: number): void {
+export function doAction(state: GameState, playerIndex: number): Tile[] {
   if (state.phase === "game-over") {
     // Game is already over
     return;
@@ -232,6 +232,16 @@ export function doAction(state: GameState, playerIndex: number): void {
     // Set game phase to "game-over" if there is a winner
     state.phase = "game-over";
   }
+
+    // Return tiles that are not yet matched
+    return Object.values(state.tilesById).filter(tile => !tile.matched);
+}
+
+/**
+ * @returns only those cards that the given player has any "business" seeing
+ */
+export function filterTilesForPlayerPerspective(tiles: Tile[], playerIndex: number) {
+  return tiles.filter(tile => tile.playerIndex == null || tile.playerIndex === playerIndex)
 }
 
 
@@ -489,18 +499,11 @@ export function doAction(state: GameState, playerIndex: number): void {
 //     )
 // }
 
-export function printState({ playerNames, cardsById, currentTurnPlayerIndex, phase, playCount }: GameState) {
-  const lastPlayedCard = getLastPlayedCard(cardsById)
-  console.log(`#${playCount} ${phase} ${lastPlayedCard ? formatCard(lastPlayedCard) : ""}`)
-  playerNames.forEach((name, playerIndex) => {
-    const cards = extractPlayerCards(cardsById, playerIndex)
-    console.log(`${name}: ${cards.map(card => formatCard(card)).join(' ')} ${playerIndex === currentTurnPlayerIndex ? ' *TURN*' : ''}`)
-  })
-}
-
-/**
- * @returns only those cards that the given player has any "business" seeing
- */
-export function filterCardsForPlayerPerspective(cards: Card[], playerIndex: number) {
-  return cards.filter(card => card.playerIndex == null || card.playerIndex === playerIndex)
-}
+// export function printState({ playerNames, cardsById, currentTurnPlayerIndex, phase, playCount }: GameState) {
+//   const lastPlayedCard = getLastPlayedCard(cardsById)
+//   console.log(`#${playCount} ${phase} ${lastPlayedCard ? formatCard(lastPlayedCard) : ""}`)
+//   playerNames.forEach((name, playerIndex) => {
+//     const cards = extractPlayerCards(cardsById, playerIndex)
+//     console.log(`${name}: ${cards.map(card => formatCard(card)).join(' ')} ${playerIndex === currentTurnPlayerIndex ? ' *TURN*' : ''}`)
+//   })
+// }

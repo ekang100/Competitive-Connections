@@ -4,77 +4,77 @@
     <b-badge class="mr-2 mb-2" :variant="myTurn ? 'primary' : 'secondary'">turn: {{ currentTurnPlayerIndex }}</b-badge>
     <b-badge class="mr-2 mb-2">{{ phase }}</b-badge>
     <div
-      v-for="card in cards"
-      :key="card.id"
-      @click="playCard(card.id)"
+      v-for="tile in tiles"
+      :key="tile.id"
+      @click="playTile(tile.id)"
     >
-      <pre>{{ formatTile(card, true) }}</pre>
+      <pre>{{ formatTile(tile) }}</pre>
     </div>
-    <b-button class="mx-2 my-2" size="sm" @click="drawCard" :disabled="!myTurn">Draw Card</b-button>
+    <!-- <b-button class="mx-2 my-2" size="sm" @click="drawCard" :disabled="!myTurn">Draw Card</b-button> -->
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed, onMounted, ref, Ref } from 'vue'
 import { io } from "socket.io-client"
-import { Card, Tile, formatTile, GamePhase, Action, formatCard, CardId } from "../../../server/model"
+import { Tile, formatTile, GamePhase, tileId } from "../../../server/model"
 
 
 const socket = io()
 const playerIndex: Ref<number | "all"> = ref("all")
 
-const cards: Ref<Card[]> = ref([])
+const tiles: Ref<Tile[]> = ref([])
 const currentTurnPlayerIndex = ref(-1)
 const phase = ref("")
-const playCount = ref(-1)
+// const playCount = ref(-1)
 
 const myTurn = computed(() => currentTurnPlayerIndex.value === playerIndex.value && phase.value !== "game-over")
 
-socket.on("all-cards", (allCards: Card[]) => {
-  cards.value = allCards
+socket.on("all-cards", (allTiles: Tile[]) => {
+  tiles.value = allTiles
 })
 
-socket.on("updated-cards", (updatedCards: Card[]) => {
-  applyUpdatedCards(updatedCards)
+socket.on("updated-cards", (updatedTiles: Tile[]) => {
+  applyUpdatedCards(updatedTiles)
 })
 
-socket.on("game-state", (newPlayerIndex: number, newCurrentTurnPlayerIndex: number, newPhase: GamePhase, newPlayCount: number) => {
+socket.on("game-state", (newPlayerIndex: number, newPhase: GamePhase) => {
   if (newPlayerIndex != null) {
     playerIndex.value = newPlayerIndex
   }
-  currentTurnPlayerIndex.value = newCurrentTurnPlayerIndex
+  // currentTurnPlayerIndex.value = newCurrentTurnPlayerIndex
   phase.value = newPhase
-  playCount.value = newPlayCount
+  // playCount.value = newPlayCount
 })
 
-function doAction(action: Action) {
-  return new Promise<Card[]>((resolve, reject) => {
+function doAction(action: Action) {                //fix this!!!
+  return new Promise<Tile[]>((resolve, reject) => {
     socket.emit("action", action)
-    socket.once("updated-cards", (updatedCards: Card[]) => {
+    socket.once("updated-cards", (updatedCards: Tile[]) => {
       resolve(updatedCards)
     })
   })
 }
 
-async function drawCard() {
+// async function drawCard() {
+//   if (typeof playerIndex.value === "number") {
+//     const updatedCards = await doAction({ action: "draw-card", playerIndex: playerIndex.value })
+//     if (updatedCards.length === 0) {
+//       alert("didn't work")
+//     }
+//   }
+// }
+
+async function playTile(TileId: tileId) {           //fix this
   if (typeof playerIndex.value === "number") {
-    const updatedCards = await doAction({ action: "draw-card", playerIndex: playerIndex.value })
+    const updatedCards = await doAction({ action: "play-card", playerIndex: playerIndex.value, TileId })
     if (updatedCards.length === 0) {
       alert("didn't work")
     }
   }
 }
 
-async function playCard(cardId: CardId) {
-  if (typeof playerIndex.value === "number") {
-    const updatedCards = await doAction({ action: "play-card", playerIndex: playerIndex.value, cardId })
-    if (updatedCards.length === 0) {
-      alert("didn't work")
-    }
-  }
-}
-
-async function applyUpdatedCards(updatedCards: Card[]) {
+async function applyUpdatedCards(updatedCards: Card[]) {        //fix this too
   for (const x of updatedCards) {
     const existingCard = cards.value.find(y => x.id === y.id)
     if (existingCard) {
