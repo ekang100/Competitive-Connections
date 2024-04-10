@@ -94,7 +94,8 @@ export function determineWinner(state: GameState) {
 
 // Function to get a random puzzle
 function getRandomPuzzle(): Puzzle | null {
-  const randomIndex = Math.floor(Math.random() * allPuzzles.length);
+  const randomIndex = Math.floor(Math.random() * 2);
+  console.log(randomIndex)
   return allPuzzles[randomIndex];
 }
 
@@ -213,6 +214,7 @@ export function doAction(state: GameState, playerIndex: number): Tile[] {
       tile.matched = true;
       tile.selected = false;
     });
+                                                    //add else statement here to decrement lives
 
     // Decrease the number of categories remaining for the player
     state.categoriesPlayersCompleted[playerIndex]++;
@@ -231,6 +233,7 @@ export function doAction(state: GameState, playerIndex: number): Tile[] {
   if (winner !== null) {
     // Set game phase to "game-over" if there is a winner
     state.phase = "game-over";
+    return
   }
 
     // Return tiles that are not yet matched

@@ -1,7 +1,7 @@
 <template>
   <div>
     <b-button class="mx-2 my-2" size="sm" @click="socket.emit('new-game')">New Game</b-button>
-    <b-badge class="mr-2 mb-2" :variant="myTurn ? 'primary' : 'secondary'">turn: {{ currentTurnPlayerIndex }}</b-badge>
+    <!-- <b-badge class="mr-2 mb-2" :variant="myTurn ? 'primary' : 'secondary'">turn: {{ currentTurnPlayerIndex }}</b-badge> -->
     <b-badge class="mr-2 mb-2">{{ phase }}</b-badge>
     <div
       v-for="tile in tiles"
@@ -30,11 +30,11 @@ const phase = ref("")
 
 const myTurn = computed(() => currentTurnPlayerIndex.value === playerIndex.value && phase.value !== "game-over")
 
-socket.on("all-cards", (allTiles: Tile[]) => {
+socket.on("all-tiles", (allTiles: Tile[]) => {
   tiles.value = allTiles
 })
 
-socket.on("updated-cards", (updatedTiles: Tile[]) => {
+socket.on("updated-tiles", (updatedTiles: Tile[]) => {
   applyUpdatedCards(updatedTiles)
 })
 
@@ -47,10 +47,10 @@ socket.on("game-state", (newPlayerIndex: number, newPhase: GamePhase) => {
   // playCount.value = newPlayCount
 })
 
-function doAction(action: Action) {                //fix this!!!
+function doAction() {              
   return new Promise<Tile[]>((resolve, reject) => {
-    socket.emit("action", action)
-    socket.once("updated-cards", (updatedCards: Tile[]) => {
+    socket.emit("action", playerIndex)
+    socket.once("updated-tiles", (updatedCards: Tile[]) => {
       resolve(updatedCards)
     })
   })
@@ -67,20 +67,20 @@ function doAction(action: Action) {                //fix this!!!
 
 async function playTile(TileId: tileId) {           //fix this
   if (typeof playerIndex.value === "number") {
-    const updatedCards = await doAction({ action: "play-card", playerIndex: playerIndex.value, TileId })
+    const updatedCards = await doAction()
     if (updatedCards.length === 0) {
       alert("didn't work")
     }
   }
 }
 
-async function applyUpdatedCards(updatedCards: Card[]) {        //fix this too
+async function applyUpdatedCards(updatedCards: Tile[]) {        //fix this too
   for (const x of updatedCards) {
-    const existingCard = cards.value.find(y => x.id === y.id)
+    const existingCard = tiles.value.find(y => x.id === y.id)
     if (existingCard) {
       Object.assign(existingCard, x)
     } else {
-      cards.value.push(x)
+      tiles.value.push(x)
     }
   }
 }
