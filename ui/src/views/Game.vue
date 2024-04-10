@@ -3,8 +3,8 @@
     <div v-if="phase === 'game-over'" style="text-align: center; margin-top: 30px;">
       <h2>Game Over</h2>
     </div>
-    <div v-for="([playerIndex, lives]) in Object.entries(playerLives)" :key="playerIndex">
-      Player {{ playerIndex }} Lives: {{ lives }}
+    <div v-for="(playerName, playerIndex) in listOfPlayerNames" :key="playerIndex">
+      Player {{ playerName }} Lives: {{ playerLives[playerIndex] }}
     </div>
     <b-button class="mx-2 my-2" size="sm" @click="socket.emit('new-game')">New Game</b-button>
     <b-badge class="mr-2 mb-2">{{ phase }}</b-badge>
@@ -19,6 +19,9 @@
         }"
       >
         <pre style="margin: auto; text-align: center;align-items: center; justify-content: center; display: flex;  padding-top: 40px; ">{{ formatTile(tile) }}</pre>
+        <div v-if="isCategoryMatched(tile.categoryNum)">
+          Category: {{ getCategoryDescription(tile.categoryNum) }}
+        </div>
       </span>
     </div>
     <b-button class="mx-2 my-2" size="sm" @click="shuffleBoard">Shuffle Board</b-button>
@@ -57,7 +60,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, Ref } from 'vue'
 import { io } from "socket.io-client"
-import { Tile, formatTile, GamePhase, tileId } from "../../../server/model"
+import { Tile, formatTile, GamePhase, tileId, PuzzleCategory } from "../../../server/model"
 
 const MAX_SELECTED_TILES = 4;
 
@@ -65,6 +68,8 @@ const socket = io()
 const playerIndex: Ref<number | "all"> = ref("all")
 
 const playerLives: Ref<number[]> = ref([]);
+const listOfPlayerNames: Ref<String[]> = ref([])
+const categories: Ref<PuzzleCategory[]> = ref([])
 
 
 const tiles: Ref<Tile[]> = ref([])
@@ -82,14 +87,15 @@ socket.on("updated-tiles", (updatedTiles: Tile[]) => {
   applyUpdatedCards(updatedTiles)
 })
 
-socket.on("game-state", (newPlayerIndex: number, playersLives: Record<number,number> , newPhase: GamePhase) => {
+socket.on("game-state", (newPlayerIndex: number, playersLives: Record<number,number> , playerNames: String[], newPhase: GamePhase, puzzleCategories: PuzzleCategory[] ) => {
   if (newPlayerIndex != null) {
     playerIndex.value = newPlayerIndex
   }
+  listOfPlayerNames.value = playerNames
   // currentTurnPlayerIndex.value = newCurrentTurnPlayerIndex
   phase.value = newPhase
   playerLives.value = Object.values(playersLives);
-
+  categories.value = puzzleCategories
   // playCount.value = newPlayCount
 })
 
@@ -209,4 +215,14 @@ function shuffle(array: any[]) {
   return array;
 }
 
+
+const getCategoryDescription = (categoryNum: number) => {
+  const category = categories.value.find(cat => cat.id === categoryNum);
+  return category ? category.description : '';
+}
+
+const isCategoryMatched = (categoryNum: number) => {
+  return tiles.value.some(tile => tile.categoryNum === categoryNum && tile.matched);
+}
 </script>
+

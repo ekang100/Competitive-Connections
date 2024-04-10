@@ -93,6 +93,7 @@ export function determineWinner(state: GameState) {
 
 
 // Function to get a random puzzle
+let currentPuzzle: Puzzle | null
 function getRandomPuzzle(): Puzzle | null {
   const randomIndex = Math.floor(Math.random() * 2);
   console.log(randomIndex)
@@ -121,6 +122,7 @@ function printPuzzle(puzzle: Puzzle): void {
 export function createEmptyGame(playerNames: string[]): GameState {
   // Get a random puzzle
   const randomPuzzle = getRandomPuzzle();
+  currentPuzzle = randomPuzzle
   
   // If no puzzle is found, return null
   if (!randomPuzzle) {
@@ -176,6 +178,11 @@ export function createEmptyGame(playerNames: string[]): GameState {
   // Return the game state
   return gameState;
 }
+
+export function getCurrentPuzzle(): Puzzle{
+  return currentPuzzle
+}
+
 
 
 export function formatTile(tile: Tile): string {

@@ -1,7 +1,7 @@
 import { createServer } from "http"
 import { Server } from "socket.io"
 import { createEmptyGame, doAction, filterTilesForPlayerPerspective } from "./model"
-import { Puzzle, PuzzleCategory, tileId, allPuzzles, Tile } from "./model"
+import { Puzzle, PuzzleCategory, tileId, allPuzzles, Tile, getCurrentPuzzle } from "./model"
 import express, { NextFunction, Request, Response } from 'express'
 import bodyParser from 'body-parser'
 import pino from 'pino'
@@ -123,6 +123,7 @@ function emitUpdatedTilesForPlayers(tiles: Tile[], newGame = false) {
   });
 }
 
+
 io.on('connection', client => {
   const user = (client.request as any).session?.passport?.user
   logger.info("new socket connection for user " + JSON.stringify(user))
@@ -136,8 +137,10 @@ io.on('connection', client => {
       "game-state", 
       playerIndex,
       gameState.playerLives,
-      // gameState.currentTurnPlayerIndex,
+      gameState.playerNames,
+        // gameState.currentTurnPlayerIndex,
       gameState.phase,
+      getCurrentPuzzle().categories
       // gameState.playCount,
     )
   }
@@ -205,6 +208,7 @@ io.on('connection', client => {
 
   client.on("new-game", () => {
     gameState = createEmptyGame(gameState.playerNames)
+    gameState.phase = 'play'
     const updatedCards = Object.values(gameState.tilesById)
     emitUpdatedTilesForPlayers(updatedCards, true)
     io.to("all").emit(
