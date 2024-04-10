@@ -82,7 +82,9 @@ io.use(wrap(sessionMiddleware))
 //here is where you load up the puzzle from puzzles.json
 
 //            SOMETHING IS MESSING UP EVERYONCE INA WHILE: ID: 'DEFAULT' ???
-const randomIndex = Math.floor(Math.random() * allPuzzles.length);
+// should be fixed
+const randomIndex = Math.floor(Math.random() * (1 - 0 + 1)) + 0;
+console.log(randomIndex)
 const randomPuzzleId = allPuzzles[randomIndex].id;
 const randomPuzzle = allPuzzles.find(puzzle => puzzle.id === randomPuzzleId);
 
@@ -226,7 +228,7 @@ client.connect().then(() => {
     const params = {
       scope: 'openid profile email',
       nonce: generators.nonce(),
-      redirect_uri: 'http://127.0.0.1:8221/login-callback',
+      redirect_uri: 'http://:8221/login-callback',
       state: generators.state(),
     }
   
