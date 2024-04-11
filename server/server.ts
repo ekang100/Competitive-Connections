@@ -263,7 +263,7 @@ client.connect().then(() => {
     const params = {
       scope: 'openid profile email',
       nonce: generators.nonce(),
-      redirect_uri: 'http://localhost:8221/login-callback',
+      redirect_uri: 'http://10.198.121.233:8221/login-callback',
       state: generators.state(),
     }
   
