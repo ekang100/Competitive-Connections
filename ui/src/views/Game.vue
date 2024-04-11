@@ -94,10 +94,17 @@ socket.on("game-state", (newPlayerIndex: number, playersLives: Record<number,num
   listOfPlayerNames.value = playerNames
   // currentTurnPlayerIndex.value = newCurrentTurnPlayerIndex
   phase.value = newPhase
-  playerLives.value = Object.values(playersLives);
+  playerLives.value = Object.values(playersLives);      // i think this is wrong
   categories.value = puzzleCategories
   // playCount.value = newPlayCount
 })
+
+socket.on("game-state-specific", (playersLives:Record<number,number>, newPhase:GamePhase) =>{
+  
+  phase.value = newPhase
+  playerLives.value = Object.values(playersLives);      // i think this is wrong
+})
+
 
 function doAction() {              
   return new Promise<Tile[]>((resolve, reject) => {
