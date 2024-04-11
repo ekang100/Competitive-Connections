@@ -5,8 +5,8 @@ export interface Player{
   id: "gitlabUserId",
   username: "gitlabUsername",
   email: "userEmail",
-  roles: ["user", "admin"], // Optional, for access control purposes
-  gamesWon: number
+  gamesWon: number,
+  groups: ["competitive-connections-admin"]
 }
 
 
