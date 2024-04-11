@@ -177,7 +177,7 @@ export function createEmptyGame(playerNames: string[]): GameState {
     phase: "pre-game",
     playerLives: initialPlayerLives,
     categoriesPlayersCompleted,
-    timeRemaining: 120,
+    timeRemaining: 120,                 //this is hardcoded rn
   };
 
   // Print puzzle details
@@ -261,6 +261,38 @@ export function filterTilesForPlayerPerspective(tiles: Tile[], playerIndex: numb
   return tiles.filter(tile => tile.playerIndex == null || tile.playerIndex === playerIndex)
 }
 
+export function startGameTimer(gameState: GameState, timeSet: number) {
+  // Define an interval that executes every second (1000 milliseconds)
+  if(gameState.phase !== 'play'){
+    gameState.timeRemaining = 0;
+  }
+  else{
+  gameState.timeRemaining = timeSet
+  
+  const intervalId = setInterval(() => {
+      // Decrease the remaining time by 1 second
+      gameState.timeRemaining -= 1;
+
+      // Check if the remaining time has reached 0 or below
+      if (gameState.timeRemaining <= 0) {
+          // Set the remaining time to 0
+          gameState.timeRemaining = 0;
+
+          // End the game if time runs out
+          gameState.phase = "game-over";
+
+          // Clear the interval since the game is over
+          clearInterval(intervalId);
+      }
+
+      // Emit the remaining time
+      console.log(`Time remaining: ${gameState.timeRemaining} seconds`);
+
+  }, 1000); // Run the function every second
+}
+  // Return the interval ID in case you need to stop the timer later
+  return;
+}
 
 
 

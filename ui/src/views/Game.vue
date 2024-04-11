@@ -4,6 +4,10 @@
     <div v-if="phase === 'game-over'" style="text-align: center; margin-top: 30px;">
       <h2>Game Over</h2>
     </div>
+    <div v-else-if="phase !== 'game-over'" style="text-align: center; margin-top: 10px;">
+      <h2>Time Remaining: {{ timeRemaining }} seconds</h2>
+    </div>
+
     <div v-if = "playerIndex!='all' && playerLives[playerIndex]==0 && activePlayers.length>0">
         <h2> You ran out of lives! Wait for the game to finish since the following players are still cooking:</h2>
         
@@ -86,8 +90,12 @@ const tiles: Ref<Tile[]> = ref([])
 // const currentTurnPlayerIndex = ref(-1)
 const phase = ref("")
 // const playCount = ref(-1)
+const timeRemaining: Ref<number> = ref(0);
 
 // const myTurn = computed(() => currentTurnPlayerIndex.value === playerIndex.value && phase.value !== "game-over")
+socket.on("game-time", (remainingTime: number) => {
+    timeRemaining.value = remainingTime;
+});
 
 socket.on("all-tiles", (allTiles: Tile[]) => {
   tiles.value = allTiles

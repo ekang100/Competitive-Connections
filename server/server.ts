@@ -1,7 +1,7 @@
 import { createServer } from "http"
 import { Server } from "socket.io"
 import {createEmptyGame, doAction, filterTilesForPlayerPerspective, getCurrentPuzzle } from "./model"
-import { Puzzle, PuzzleCategory, tileId, allPuzzles, Tile } from "./model"
+import { Puzzle, PuzzleCategory, tileId, allPuzzles, Tile, startGameTimer } from "./model"
 import express, { NextFunction, Request, Response } from 'express'
 import bodyParser from 'body-parser'
 import pino from 'pino'
@@ -102,7 +102,7 @@ io.use(wrap(sessionMiddleware))
 // hard-coded game configuration
 const playerUserIds = ["anthony.cui", "ek199"]
 let gameState = createEmptyGame(playerUserIds)
-
+let timeSet: number = 60
 
 function emitUpdatedTilesForPlayers(tiles: Tile[], newGame = false) {   
   gameState.playerNames.forEach((_, i) => {      
@@ -220,6 +220,7 @@ io.on('connection', client => {
     gameState.phase = 'play'
     const updatedCards = Object.values(gameState.tilesById)
     emitUpdatedTilesForPlayers(updatedCards, true)
+    startGameTimer(gameState, timeSet)
     io.to("all").emit(
       "all-tiles", 
       updatedCards,
@@ -228,7 +229,23 @@ io.on('connection', client => {
       "game-state-specific",
        gameState.playerLives,
        gameState.phase
-    )  })
+    )  
+    io.emit('game-time', gameState.timeRemaining);
+    
+     // Emit the remaining game time every second to all connected clients
+     const emitGameTime = setInterval(() => {
+      io.emit('game-time', gameState.timeRemaining);
+
+      // If the game is over, clear the interval
+      if (gameState.phase === "game-over") {
+          clearInterval(emitGameTime);
+          io.emit('game-state-specific', gameState.playerLives, gameState.phase)
+      }
+  }, 1000);
+  
+  
+  
+  })
 })
 
 // app routes
@@ -262,7 +279,8 @@ client.connect().then(() => {
     const params = {
       scope: 'openid profile email',
       nonce: generators.nonce(),
-      redirect_uri: 'http://10.198.2.194:8221/login-callback',
+      // redirect_uri: 'http://10.198.2.194:8221/login-callback', //this is ellies server
+      redirect_uri: 'http://10.198.121.233:8221/login-callback', // this is eduroam: tonys server
       state: generators.state(),
     }
   
