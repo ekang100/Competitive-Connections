@@ -1,6 +1,6 @@
 import { createServer } from "http"
 import { Server } from "socket.io"
-import { Action, createEmptyGame, doAction, filterCardsForPlayerPerspective, Card } from "./model"
+import {createEmptyGame, doAction, filterTilesForPlayerPerspective, getCurrentPuzzle } from "./model"
 import { Puzzle, PuzzleCategory, tileId, allPuzzles, Tile } from "./model"
 import express, { NextFunction, Request, Response } from 'express'
 import bodyParser from 'body-parser'
@@ -76,50 +76,51 @@ const io = new Server(server)
 const wrap = (middleware: any) => (socket: any, next: any) => middleware(socket.request, {}, next)
 io.use(wrap(sessionMiddleware))
 
-
-
 //////////////////
 //here is where you load up the puzzle from puzzles.json
 
 //            SOMETHING IS MESSING UP EVERYONCE INA WHILE: ID: 'DEFAULT' ???
-// should be fixed
-const randomIndex = Math.floor(Math.random() * (1 - 0 + 1)) + 0;
-console.log(randomIndex)
-const randomPuzzleId = allPuzzles[randomIndex].id;
-const randomPuzzle = allPuzzles.find(puzzle => puzzle.id === randomPuzzleId);
+// const randomIndex = Math.floor(Math.random() * allPuzzles.length);
+// const randomPuzzleId = allPuzzles[randomIndex].id;
+// const randomPuzzle = allPuzzles.find(puzzle => puzzle.id === randomPuzzleId);
 
-if (randomPuzzle) {
-  console.log(`ID: ${randomPuzzle.id}`);
-  randomPuzzle.categories.forEach((category) => {
-    console.log(`  ${category.description}:`);
-    category.words.forEach((word) => {
-      console.log(`    ${word}`);
-    });
-  });
-} else {
-  console.log('Puzzle not found!');
-}
+// if (randomPuzzle) {
+//   console.log(`ID: ${randomPuzzle.id}`);
+//   randomPuzzle.categories.forEach((category) => {
+//     console.log(`  ${category.description}:`);
+//     category.words.forEach((word) => {
+//       console.log(`    ${word}`);
+//     });
+//   });
+// } else {
+//   console.log('Puzzle not found!');
+// }
 ////////////////////
 
 
 
 // hard-coded game configuration
-const playerUserIds = ["hm222", "ys385"]
-let gameState = createEmptyGame(playerUserIds, 1, 2)
+const playerUserIds = ["anthony.cui", "ek199"]
+let gameState = createEmptyGame(playerUserIds)
 
-function emitUpdatedCardsForPlayers(cards: Card[], newGame = false) {
-  gameState.playerNames.forEach((_, i) => {
-    let updatedCardsFromPlayerPerspective = filterCardsForPlayerPerspective(cards, i)
-    if (newGame) {
-      updatedCardsFromPlayerPerspective = updatedCardsFromPlayerPerspective.filter(card => card.locationType !== "unused")
-    }
-    console.log("emitting update for player", i, ":", updatedCardsFromPlayerPerspective)
-    io.to(String(i)).emit(
-      newGame ? "all-cards" : "updated-cards", 
-      updatedCardsFromPlayerPerspective,
-    )
-  })
+
+function emitUpdatedTilesForPlayers(tiles: Tile[], newGame = false) {   
+  gameState.playerNames.forEach((_, i) => {      
+      let updatedCardsFromPlayerPerspective: Tile[];
+      if (tiles && tiles.length > 0) {
+          updatedCardsFromPlayerPerspective = filterTilesForPlayerPerspective(tiles, i);
+          // if (newGame) {
+          //   updatedCardsFromPlayerPerspective = updatedCardsFromPlayerPerspective.filter(card => card.locationType !== "unused")
+          // }
+      }
+      console.log("emitting update for player", i, ":", updatedCardsFromPlayerPerspective);
+      io.to(String(i)).emit(  
+          newGame ? "all-tiles" : "updated-tiles", 
+          updatedCardsFromPlayerPerspective,
+      );
+  });
 }
+
 
 io.on('connection', client => {
   const user = (client.request as any).session?.passport?.user
@@ -129,13 +130,16 @@ io.on('connection', client => {
     return
   }
 
-  function emitGameState() {
+  function emitGameState() {      
     client.emit(
       "game-state", 
       playerIndex,
-      gameState.currentTurnPlayerIndex,
+      gameState.playerLives,
+      gameState.playerNames,
+        // gameState.currentTurnPlayerIndex,
       gameState.phase,
-      gameState.playCount,
+      getCurrentPuzzle().categories
+      // gameState.playCount,
     )
   }
   
@@ -148,53 +152,74 @@ io.on('connection', client => {
   
   if (typeof playerIndex === "number") {
     client.emit(
-      "all-cards", 
-      filterCardsForPlayerPerspective(Object.values(gameState.cardsById), playerIndex).filter(card => card.locationType !== "unused"),
+      "all-tiles", 
+      filterTilesForPlayerPerspective(Object.values(gameState.tilesById), playerIndex)
     )
   } else {
     client.emit(
-      "all-cards", 
-      Object.values(gameState.cardsById),    
+      "all-tiles", 
+      Object.values(gameState.tilesById),    
     )
   }
   emitGameState()
 
-  client.on("action", (action: Action) => {
+  
+  client.on("action", (playerIndex: Number) => {
+    console.log(typeof playerIndex, 'playerIndex: ', playerIndex)
     if (typeof playerIndex === "number") {
-      const updatedCards = doAction(gameState, { ...action, playerIndex })
-      emitUpdatedCardsForPlayers(updatedCards)
+      console.log('checkpoint 1')
+
+      const updatedCards = doAction(gameState, playerIndex)
+      emitUpdatedTilesForPlayers(updatedCards)
     } else {
       // no actions allowed from "all"
     }
     io.to("all").emit(
-      "updated-cards", 
-      Object.values(gameState.cardsById),    
+      "updated-tiles", 
+      Object.values(gameState.tilesById),    
     )
-    io.emit(
-      "game-state", 
-      null,
-      gameState.currentTurnPlayerIndex,
-      gameState.phase,
-      gameState.playCount,
-    )
+    emitGameState()
+
+    // io.to("all").emit(
+    //   "game-state-specific",
+    //    gameState.playerLives,
+    //    gameState.phase
+    // )
   })
 
-  // edit this so that only admins can make a new game
+  client.on("selected-tile", (selectedTile: Tile) => {
+    console.log("Selected tile:", selectedTile);
+  
+    // Update the selected tile in the game state
+    const tileToUpdate = gameState.tilesById[selectedTile.id];
+    if (tileToUpdate) {
+      // Update the properties of the tile with the new values from the client
+      tileToUpdate.selected = selectedTile.selected;
+      // tileToUpdate.matched = selectedTile.matched;
+      // tileToUpdate.playerIndex = selectedTile.playerIndex;
+  
+      // Emit the updated tile to the player who made the selection
+      // client.emit("updated-tile", tileToUpdate);
+  
+      // Emit the updated tile to all players (including the player who made the selection)
+      // io.emit("updated-tile", tileToUpdate);               //do i need this?
+    } else {
+      console.error("Tile not found in game state:", selectedTile.id);
+      // Handle the case where the selected tile is not found in the game state
+      // You may emit an error event or take appropriate action based on your application's logic
+    }
+  });
+
   client.on("new-game", () => {
-    gameState = createEmptyGame(gameState.playerNames, 1, 2)
-    const updatedCards = Object.values(gameState.cardsById)
-    emitUpdatedCardsForPlayers(updatedCards, true)
+    gameState = createEmptyGame(gameState.playerNames)
+    gameState.phase = 'play'
+    const updatedCards = Object.values(gameState.tilesById)
+    emitUpdatedTilesForPlayers(updatedCards, true)
     io.to("all").emit(
-      "all-cards", 
+      "all-tiles", 
       updatedCards,
     )
-    io.emit(
-      "game-state", 
-      playerIndex,
-      gameState.currentTurnPlayerIndex,
-      gameState.phase,
-      gameState.playCount,
-    )
+    emitGameState()
   })
 })
 
