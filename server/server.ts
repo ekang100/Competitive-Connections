@@ -246,6 +246,7 @@ async function fetchGitLabGroups(accessToken: any) {
     headers: { 'Authorization': `Bearer ${accessToken}` }
   });
   const data = await response.json();
+  console.log("Data:", data)
   return data.map((group: { full_path: any }) => group.full_path);
 }
 
@@ -263,7 +264,7 @@ client.connect().then(() => {
     const params = {
       scope: 'openid profile email',
       nonce: generators.nonce(),
-      redirect_uri: 'http://10.198.121.233:8221/login-callback',
+      redirect_uri: 'http://10.198.2.194:8221/login-callback',
       state: generators.state(),
     }
   
@@ -271,29 +272,46 @@ client.connect().then(() => {
       // Log the userInfo and tokenSet for debugging
       console.log('userInfo', userInfo);
       console.log('tokenSet', tokenSet);
+      console.log('groups', userInfo.groups);
+      const groups = userInfo.groups;
+
+      const player = {
+        id: userInfo.sub,
+        username: userInfo.preferred_username || userInfo.nickname,
+        email: userInfo.email,
+        gamesPlayed: 0,
+        groups: groups // Store the groups in the database as part of the player's record
+      };
+
+      db.collection("players").updateOne(
+        { _id: player.id },
+        { $set: player },
+        { upsert: true }
+      ).then(() => done(null, userInfo))
+        .catch(error => done(error, null));
     
       // Fetch GitLab groups using an access token
-      fetchGitLabGroups(tokenSet.access_token).then(groups => {
-        userInfo.groups = groups; // Add groups to the userInfo
+      // fetchGitLabGroups(tokenSet.access_token).then(groups => {
+      //   userInfo.groups = groups; // Add groups to the userInfo
     
-        const player = {
-          id: userInfo.sub,
-          username: userInfo.preferred_username || userInfo.nickname,
-          email: userInfo.email,
-          gamesPlayed: 0,
-          groups: groups // Store the groups in the database as part of the player's record
-        };
+      //   const player = {
+      //     id: userInfo.sub,
+      //     username: userInfo.preferred_username || userInfo.nickname,
+      //     email: userInfo.email,
+      //     gamesPlayed: 0,
+      //     groups: groups // Store the groups in the database as part of the player's record
+      //   };
     
-        db.collection("players").updateOne(
-          { _id: player.id },
-          { $set: player },
-          { upsert: true }
-        ).then(() => done(null, userInfo))
-          .catch(error => done(error, null));
-      }).catch(error => {
-        console.error('Error fetching groups:', error);
-        done(error, null);
-      });
+      //   db.collection("players").updateOne(
+      //     { _id: player.id },
+      //     { $set: player },
+      //     { upsert: true }
+      //   ).then(() => done(null, userInfo))
+      //     .catch(error => done(error, null));
+      // }).catch(error => {
+      //   console.error('Error fetching groups:', error);
+      //   done(error, null);
+      // });
     }
   
     passport.use('oidc', new Strategy({ client, params }, verify))
