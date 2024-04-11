@@ -4,6 +4,15 @@
     <div v-if="phase === 'game-over'" style="text-align: center; margin-top: 30px;">
       <h2>Game Over</h2>
     </div>
+    <div v-if = "playerIndex!='all' && playerLives[playerIndex]==0 && activePlayers.length>0">
+        <h2> You ran out of lives! Wait for the game to finish since the following players are still cooking:</h2>
+        
+        <div v-for="(playerName, playerIndex) in activePlayers" >
+            {{ playerName }}
+        </div>
+      </div>
+
+
     <div v-for="(playerName, playerIndex) in listOfPlayerNames" :key="playerIndex">
       Player {{ playerName }} Lives: {{ playerLives[playerIndex] }}
     </div>
@@ -92,6 +101,8 @@ socket.on("game-state", (newPlayerIndex: number, playersLives: Record<number,num
   if (newPlayerIndex != null) {
     playerIndex.value = newPlayerIndex
   }
+
+  console.log('these are the player lives:', playersLives)
   listOfPlayerNames.value = playerNames
   // currentTurnPlayerIndex.value = newCurrentTurnPlayerIndex
   phase.value = newPhase
@@ -100,10 +111,10 @@ socket.on("game-state", (newPlayerIndex: number, playersLives: Record<number,num
   // playCount.value = newPlayCount
 })
 
-socket.on("game-state-specific", (playersLives:Record<number,number>, newPhase:GamePhase) =>{
-  
+socket.on("game-state-specific", (playLives: Record<number,number>, newPhase:GamePhase) =>{
+  console.log('please work', playLives)
   phase.value = newPhase
-  playerLives.value = Object.values(playersLives);      // i think this is wrong
+  playerLives.value = Object.values(playLives);      // i think this is wrong
 })
 
 
@@ -232,4 +243,11 @@ const getCategoryDescription = (categoryNum: number) => {
 const isCategoryMatched = (categoryNum: number) => {
   return tiles.value.some(tile => tile.categoryNum === categoryNum && tile.matched);
 }
+
+
+const activePlayers = computed(() => {
+  return listOfPlayerNames.value.filter((_, index) => playerLives.value[index] > 0);
+});
+
+
 </script>

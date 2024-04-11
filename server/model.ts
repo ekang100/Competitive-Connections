@@ -199,7 +199,7 @@ export function formatTile(tile: Tile): string {
 
 
 export function doAction(state: GameState, playerIndex: number): Tile[] {         //need to have a check for matched tiles
-  if (state.phase === "game-over") {
+  if (state.phase === "game-over" || state.playerLives[playerIndex]==0) {
     // Game is already over
     return;
   }
@@ -238,7 +238,7 @@ console.log('checkpoint2')
       state.phase = "game-over";
     }
   }
-  else{
+  else if (state.playerLives[playerIndex]>0){
     state.playerLives[playerIndex]--;         
   }
 
