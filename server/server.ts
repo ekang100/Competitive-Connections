@@ -180,18 +180,23 @@ io.on('connection', client => {
     )
     emitGameState()
 
-    // io.to("all").emit(
-    //   "game-state-specific",
-    //    gameState.playerLives,
-    //    gameState.phase
-    // )
+    io.emit(
+      "game-state-specific",
+       gameState.playerLives,
+       gameState.phase
+    )
   })
 
-  client.on("selected-tile", (selectedTile: Tile) => {
+  client.on("selected-tile", (selectedTile: Tile) => {      //maybe test player logic here
     console.log("Selected tile:", selectedTile);
-  
+    
+
+
+
     // Update the selected tile in the game state
     const tileToUpdate = gameState.tilesById[selectedTile.id];
+
+    
     if (tileToUpdate) {
       // Update the properties of the tile with the new values from the client
       tileToUpdate.selected = selectedTile.selected;
@@ -219,8 +224,11 @@ io.on('connection', client => {
       "all-tiles", 
       updatedCards,
     )
-    emitGameState()
-  })
+    io.emit(
+      "game-state-specific",
+       gameState.playerLives,
+       gameState.phase
+    )  })
 })
 
 // app routes
