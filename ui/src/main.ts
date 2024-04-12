@@ -7,6 +7,7 @@ import 'bootstrap-vue/dist/bootstrap-vue.css'
 
 import App from './App.vue'
 import Game from './views/Game.vue'
+import End from './views/End.vue'
 
 const routes = [
 	{
@@ -17,7 +18,11 @@ const routes = [
 		// 		playerIndex: route.params.playerIndex
 		// 	}
 		// }
-	}
+	},
+	   {
+        path: "/game-over",
+        component: End, // Define the End component for /game-over route
+    }
 ]
 
 const router = createRouter({

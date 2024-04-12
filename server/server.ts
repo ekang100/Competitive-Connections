@@ -141,6 +141,7 @@ io.on('connection', client => {
       getCurrentPuzzle().categories,
       gameState.categoriesPlayersCompleted
       // gameState.playCount,
+      //can add here the list of players who won already since its in game state
     )
   }
   
@@ -185,7 +186,8 @@ io.on('connection', client => {
       "game-state-specific",
        gameState.playerLives,
        gameState.phase,
-       gameState.categoriesPlayersCompleted
+       gameState.categoriesPlayersCompleted,
+       gameState.playerWinner
     )
   })
 
@@ -285,8 +287,8 @@ client.connect().then(() => {
       scope: 'openid profile email',
       nonce: generators.nonce(),
       // redirect_uri: 'http://10.198.2.194:8221/login-callback', //this is ellies server
-      // redirect_uri: 'http://10.198.121.233:8221/login-callback', // this is eduroam: tonys server
-      redirect_uri: 'http://10.197.59.172:8221/login-callback', // this is dukeblue: tonys server
+      redirect_uri: 'http://10.198.121.233:8221/login-callback', // this is eduroam: tonys server
+      // redirect_uri: 'http://10.197.59.172:8221/login-callback', // this is dukeblue: tonys server
 
       state: generators.state(),
     }

@@ -126,6 +126,10 @@
 import { computed, onMounted, ref, Ref } from 'vue'
 import { io } from "socket.io-client"
 import { Tile, formatTile, GamePhase, tileId, PuzzleCategory } from "../../../server/model"
+import { useRouter } from 'vue-router'; // Import useRouter for navigation
+const router = useRouter(); // Initialize the router instance
+
+
 
 const MAX_SELECTED_TILES = 4;
 
@@ -172,7 +176,11 @@ socket.on("game-state", (newPlayerIndex: number, playersLives: Record<number,num
   // playCount.value = newPlayCount
 })
 
-socket.on("game-state-specific", (playLives: Record<number,number>, newPhase:GamePhase, categoriesPlayersCompleted:  Record<number, number>) =>{
+socket.on("game-state-specific", (playLives: Record<number,number>, newPhase:GamePhase, categoriesPlayersCompleted:  Record<number, number>, playerWin: string) =>{
+ if (newPhase === 'game-over'){
+  router.push('/game-over');
+ } 
+  
   console.log('please work', playLives)
   phase.value = newPhase
   playerLives.value = Object.values(playLives);     
