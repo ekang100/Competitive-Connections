@@ -1,5 +1,8 @@
 
 <template>
+
+
+<link href="https://fonts.googleapis.com/css2?family=Abel&family=Nanum+Gothic+Coding&family=Space+Grotesk:wght@300&display=swap" rel="stylesheet">
   <div>
     <div v-if="phase === 'game-over'" style="text-align: center; margin-top: 30px;">
       <h2>Game Over</h2>
@@ -16,10 +19,17 @@
         </div>
       </div>
 
-
-    <div v-for="(playerName, playerIndex) in listOfPlayerNames" :key="playerIndex">
-      Player {{ playerName }} Lives: {{ playerLives[playerIndex] }}
-    </div>
+      <div v-for="(playerName, playerIndex) in listOfPlayerNames" :key="playerIndex" class="player-info">
+  <div class="player-name">{{ playerName }}</div>
+  <div class="player-details">
+    <span class="player-lives">
+      <i class="fa fa-heart" aria-hidden="true"></i> Lives: {{ playerLives[playerIndex] }}
+    </span>
+    <span class="player-categories">
+      <i class="fa fa-list" aria-hidden="true"></i> Categories: {{ playersCategoriesNum[playerIndex] }}
+    </span>
+  </div>
+</div>
     <b-button class="mx-2 my-2" size="sm" @click="socket.emit('new-game')">New Game</b-button>
     <b-badge class="mr-2 mb-2">{{ phase }}</b-badge>
     <div class="board">
@@ -28,14 +38,13 @@
         :key="tile.id"
         @click="playTile(tile.id)"
         class="tile"
-        :style="{
-          backgroundColor: tile.selected ? '#f0f0f0' : tile.matched ? 'blue' : 'transparent'
-        }"
+        :style="getTileStyle(tile)"
+
       >
         <pre style="margin: auto; text-align: center;align-items: center; justify-content: center; display: flex;  padding-top: 40px; ">{{ formatTile(tile) }}</pre>
-        <div v-if="isCategoryMatched(tile.categoryNum)">
-          Category: {{ getCategoryDescription(tile.categoryNum) }}
-        </div>
+        <div v-if="isCategoryMatched(tile.categoryNum)" style="text-align: center; font-weight: bold; font-size: 12px;">
+    {{ getCategoryDescription(tile.categoryNum) }}
+</div>
       </span>
     </div>
     <b-button class="mx-2 my-2" size="sm" @click="shuffleBoard">Shuffle Board</b-button>
@@ -44,11 +53,24 @@
 </template>
 
 <style scoped>
+
+  h2,
+    div,
+    span,
+    pre,
+    button {
+      font-family: "Nanum Gothic Coding", monospace;
+        /* Adjust additional styles as needed */
+    }
+    
   .board {
     display: grid;
     grid-template-columns: repeat(4, 1fr); /* 4 columns */
-    gap: 5px; /* Adjust gap as needed */
+    gap: 10px; /* Adjust gap as needed */
     justify-content: center;
+    margin: 0 auto; /* Center the board horizontally */
+    width: fit-content; /* Adjust the width according to the content */
+
   }
   
   .tile {
@@ -58,6 +80,35 @@
     border: 1px solid black; /* Add border for better visualization */
     cursor: pointer; /* Change cursor to pointer on hover */
   }
+
+  .player-info {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 10px;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.player-name {
+  font-weight: bold;
+  font-size: 16px;
+}
+
+.player-details {
+  display: flex;
+  justify-content: space-between;
+  padding-top: 5px;
+}
+
+.player-lives, .player-categories {
+  display: flex;
+  align-items: center;
+}
+
+.player-lives i, .player-categories i {
+  margin-right: 5px;
+}
 </style>
 
 <style scoped>
@@ -84,7 +135,7 @@ const playerIndex: Ref<number | "all"> = ref("all")
 const playerLives: Ref<number[]> = ref([]);
 const listOfPlayerNames: Ref<String[]> = ref([])
 const categories: Ref<PuzzleCategory[]> = ref([])
-
+const playersCategoriesNum: Ref<number[]> = ref([]);
 
 const tiles: Ref<Tile[]> = ref([])
 // const currentTurnPlayerIndex = ref(-1)
@@ -105,7 +156,7 @@ socket.on("updated-tiles", (updatedTiles: Tile[]) => {
   applyUpdatedCards(updatedTiles)
 })
 
-socket.on("game-state", (newPlayerIndex: number, playersLives: Record<number,number> , playerNames: String[], newPhase: GamePhase, puzzleCategories: PuzzleCategory[] ) => {
+socket.on("game-state", (newPlayerIndex: number, playersLives: Record<number,number> , playerNames: String[], newPhase: GamePhase, puzzleCategories: PuzzleCategory[], categoriesPlayersCompleted:  Record<number, number> ) => {
   if (newPlayerIndex != null) {
     playerIndex.value = newPlayerIndex
   }
@@ -116,13 +167,16 @@ socket.on("game-state", (newPlayerIndex: number, playersLives: Record<number,num
   phase.value = newPhase
   playerLives.value = Object.values(playersLives);      // i think this is wrong
   categories.value = puzzleCategories
+  playersCategoriesNum.value = Object.values(categoriesPlayersCompleted)
+
   // playCount.value = newPlayCount
 })
 
-socket.on("game-state-specific", (playLives: Record<number,number>, newPhase:GamePhase) =>{
+socket.on("game-state-specific", (playLives: Record<number,number>, newPhase:GamePhase, categoriesPlayersCompleted:  Record<number, number>) =>{
   console.log('please work', playLives)
   phase.value = newPhase
-  playerLives.value = Object.values(playLives);      // i think this is wrong
+  playerLives.value = Object.values(playLives);     
+  playersCategoriesNum.value = Object.values(categoriesPlayersCompleted)
 })
 
 
@@ -257,5 +311,51 @@ const activePlayers = computed(() => {
   return listOfPlayerNames.value.filter((_, index) => playerLives.value[index] > 0);
 });
 
+// const playerProgress = computed(() => {
+//   return listOfPlayerNames.value.map((_, index) => {
+//     const livesLeft = playerLives.value[index];
+//     const categoriesCompleted = playersCategoriesNum.value[index];
+    
+//     if (phase.value === "game-over") {
+//       if (livesLeft === 0 && categoriesCompleted < 4) {
+//         return "failed";
+//       } else if (categoriesCompleted >= 4) {
+//         return "completed";
+//       }
+//     } else if (phase.value === "in-play") {
+//       if (livesLeft > 0 && categoriesCompleted < 4) {
+//         return "in progress";
+//       }
+//     }
+    
+//     return "";
+//   });
+// });
 
+const getTileStyle = (tile: Tile) => {
+  let backgroundColor = 'transparent';
+
+  if (tile.selected) {
+    backgroundColor = '#f0f0f0';
+  } else if (tile.matched) {
+    switch (tile.categoryNum) {
+      case 1:
+        backgroundColor = '#fbd400'; // Category ID 1
+        break;
+      case 2:
+        backgroundColor = '#69e352'; // Category ID 2
+        break;
+      case 3:
+        backgroundColor = '#5492ff'; // Category ID 3
+        break;
+      case 4:
+        backgroundColor = '#df7bea'; // Category ID 4
+        break;
+    }
+  }
+
+  return {
+    backgroundColor,
+  };
+};
 </script>

@@ -138,7 +138,8 @@ io.on('connection', client => {
       gameState.playerNames,
         // gameState.currentTurnPlayerIndex,
       gameState.phase,
-      getCurrentPuzzle().categories
+      getCurrentPuzzle().categories,
+      gameState.categoriesPlayersCompleted
       // gameState.playCount,
     )
   }
@@ -183,7 +184,8 @@ io.on('connection', client => {
     io.emit(
       "game-state-specific",
        gameState.playerLives,
-       gameState.phase
+       gameState.phase,
+       gameState.categoriesPlayersCompleted
     )
   })
 
@@ -228,7 +230,9 @@ io.on('connection', client => {
     io.emit(
       "game-state-specific",
        gameState.playerLives,
-       gameState.phase
+       gameState.phase,
+       gameState.categoriesPlayersCompleted
+
     )  
     io.emit('game-time', gameState.timeRemaining);
     
@@ -239,7 +243,8 @@ io.on('connection', client => {
       // If the game is over, clear the interval
       if (gameState.phase === "game-over") {
           clearInterval(emitGameTime);
-          io.emit('game-state-specific', gameState.playerLives, gameState.phase)
+          io.emit('game-state-specific', gameState.playerLives, gameState.phase, gameState.categoriesPlayersCompleted
+        )
       }
   }, 1000);
   
@@ -280,7 +285,9 @@ client.connect().then(() => {
       scope: 'openid profile email',
       nonce: generators.nonce(),
       // redirect_uri: 'http://10.198.2.194:8221/login-callback', //this is ellies server
-      redirect_uri: 'http://10.198.121.233:8221/login-callback', // this is eduroam: tonys server
+      // redirect_uri: 'http://10.198.121.233:8221/login-callback', // this is eduroam: tonys server
+      redirect_uri: 'http://10.197.59.172:8221/login-callback', // this is dukeblue: tonys server
+
       state: generators.state(),
     }
   
