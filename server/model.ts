@@ -248,7 +248,7 @@ console.log('checkpoint2')
   if (winner !== null) {
     // Set game phase to "game-over" if there is a winner
     state.phase = "game-over";
-    return
+    return Object.values(state.tilesById);
   }
 
     return Object.values(state.tilesById);
