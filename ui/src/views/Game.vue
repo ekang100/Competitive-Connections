@@ -172,7 +172,7 @@ socket.on("game-state", (newPlayerIndex: number, playersLives: Record<number,num
   // playCount.value = newPlayCount
 })
 
-socket.on("game-state-specific", (playLives: Record<number,number>, newPhase:GamePhase, categoriesPlayersCompleted:  Record<number, number>) =>{
+socket.on("game-state-specific", (playLives: Record<number,number>, newPhase:GamePhase, categoriesPlayersCompleted:  Record<number, number>, playerWin: string) =>{
   console.log('please work', playLives)
   phase.value = newPhase
   playerLives.value = Object.values(playLives);     

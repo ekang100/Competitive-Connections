@@ -63,6 +63,7 @@ export interface GameState {
   playerLives: Record<number, number>; // Track player lives, index to index
   categoriesPlayersCompleted: Record<number, number>; //tracks number of categories a player completed
   timeRemaining: number; // Time remaining in seconds
+  playerWinner: string;
 }
 
 /**DOES THIS HAVE TO ONLY EXTRACT UNSELECTED TILES?
@@ -178,6 +179,7 @@ export function createEmptyGame(playerNames: string[]): GameState {
     playerLives: initialPlayerLives,
     categoriesPlayersCompleted,
     timeRemaining: 120,                 //this is hardcoded rn
+    playerWinner: "",
   };
 
   // Print puzzle details
@@ -236,6 +238,7 @@ console.log('checkpoint2')
     if (state.categoriesPlayersCompleted[playerIndex] == 4) {
       console.log('game is over!!!!!')
       state.phase = "game-over";
+      state.playerWinner = state.playerNames[playerIndex]
     }
   }
   else if (state.playerLives[playerIndex]>0){
