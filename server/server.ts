@@ -102,7 +102,7 @@ io.use(wrap(sessionMiddleware))
 // hard-coded game configuration
 const playerUserIds = ["anthony.cui", "ek199"]
 let gameState = createEmptyGame(playerUserIds)
-let timeSet: number = 60
+let timeSet: number = 5
 
 function emitUpdatedTilesForPlayers(tiles: Tile[], newGame = false) {   
   gameState.playerNames.forEach((_, i) => {      

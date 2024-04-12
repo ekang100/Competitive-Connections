@@ -1,14 +1,21 @@
 <template>
     <div class="end-container">
         <h2 style="text-align: center; margin-top: 30px;">Game Over</h2>
-        <div class="winner-section">
-            <h3 style="color: gold; font-size: 24px;">🏆 Winner: {{ finishedPlayer }} 🏆</h3>
+        <div v-if="finishedPlayer">
+            <div class="winner-section">
+                <h3 style="color: gold; font-size: 24px;">🏆 Winner: {{ finishedPlayer }} 🏆</h3>
+            </div>
+        </div>
+        <div v-else>
+            <div class="winner-section">
+                <h3 style="color: red; font-size: 24px;">No one won this game.</h3>
+            </div>
         </div>
         <div class="player-list">
             <div v-for="(player, index) in listOfPlayerNames" :key="index" 
                 :class="{ 'current-user': index === playerIndex }" 
                 class="player-item">
-                <span class="player-rank">#{index + 1}</span>
+                <!-- <span class="player-rank">#{index + 1}</span> -->
                 <span class="player-name">{{ player }}</span>
                 <span class="player-info">(Categories completed: {{ playersCategoriesNum[index] }}, Lives left: {{ playerLives[index] }})</span>
             </div>
@@ -58,6 +65,9 @@
   
   .player-name {
     font-size: 16px;
+    font-weight: bold;
+    margin-right: 10px;
+
   }
   </style>
   
@@ -85,6 +95,7 @@ socket.on("game-state-specific", (playLives: Record<number,number>, newPhase:Gam
   playerLives.value = Object.values(playLives);     
   playersCategoriesNum.value = Object.values(categoriesPlayersCompleted)
   finishedPlayer.value = playerWin
+  console.log('this is the player that won:', finishedPlayer.value)
 })
 
 
