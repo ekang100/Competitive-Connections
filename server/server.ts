@@ -219,6 +219,13 @@ io.on('connection', client => {
     }
   });
 
+  client.on("change-state", (changedState: string) => {
+    console.log(changedState)
+    io.emit(
+"new-state",
+changedState
+  )});
+
   client.on("new-game", () => {
     gameState = createEmptyGame(gameState.playerNames)
     gameState.phase = 'play'
