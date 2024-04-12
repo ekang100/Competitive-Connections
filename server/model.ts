@@ -178,7 +178,7 @@ export function createEmptyGame(playerNames: string[]): GameState {
     phase: "pre-game",
     playerLives: initialPlayerLives,
     categoriesPlayersCompleted,
-    timeRemaining: 120,                 //this is hardcoded rn
+    timeRemaining: 60,                 //this is hardcoded rn
     playerWinner: "",
   };
 

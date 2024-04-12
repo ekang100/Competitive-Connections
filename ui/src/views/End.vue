@@ -84,7 +84,7 @@
   const playerIndex: Ref<number | "all"> = ref("all")
 
 const playerLives: Ref<number[]> = ref([]);
-const listOfPlayerNames: Ref<String[]> = ref([])
+const listOfPlayerNames: Ref<string[]> = ref([])
 const categories: Ref<PuzzleCategory[]> = ref([])
 const playersCategoriesNum: Ref<number[]> = ref([]);
   
@@ -94,12 +94,19 @@ socket.on("game-state-specific", (playLives: Record<number,number>, newPhase:Gam
   phase.value = newPhase
   playerLives.value = Object.values(playLives);     
   playersCategoriesNum.value = Object.values(categoriesPlayersCompleted)
-  finishedPlayer.value = playerWin
-  console.log('this is the player that won:', finishedPlayer.value)
+//   finishedPlayer.value = playerWin
+//   console.log('this is the player that won:', finishedPlayer.value)
+  // Check if there is a winner with 4 categories completed
+  for (let i = 0; i < playersCategoriesNum.value.length; i++) {
+    if (playersCategoriesNum.value[i] === 4) {
+      finishedPlayer.value = listOfPlayerNames.value[i];
+      break; // Break out of the loop once a winner is found
+    }
+  }
 })
 
 
-socket.on("game-state", (newPlayerIndex: number, playersLives: Record<number,number> , playerNames: String[], newPhase: GamePhase, puzzleCategories: PuzzleCategory[], categoriesPlayersCompleted:  Record<number, number> ) => {
+socket.on("game-state", (newPlayerIndex: number, playersLives: Record<number,number> , playerNames: string[], newPhase: GamePhase, puzzleCategories: PuzzleCategory[], categoriesPlayersCompleted:  Record<number, number> ) => {
   if (newPlayerIndex != null) {
     playerIndex.value = newPlayerIndex
   }
