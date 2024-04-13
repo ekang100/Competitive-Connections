@@ -54,11 +54,14 @@ feature-change-job:
   stage: deploy
   script:
     - echo "Applying feature change"
+    - git checkout main
     - sed -i 's/Welcome/Howdy/' ui/src/App.vue  # Change 'Welcome' to 'Howdy'
     - echo "Committing the change..."
     - git config --global user.email "anthony.cui@duke.edu"
     - git config --global user.name "anthony.cui"
     - git commit -am "Change 'Welcome' to 'Howdy' in App.vue"
+    - echo "Configuring authentication for push..."
+    - git remote set-url origin "https://$TOKEN@coursework.cs.duke.edu/anthony.cui/competitive-connections.git"
     - git push origin main  # Push the change back to the repository
     - echo "Feature change applied and committed to repository."
 
