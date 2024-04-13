@@ -1,6 +1,8 @@
 <template>
     <div class="end-container">
         <h2 style="text-align: center; margin-top: 30px;">Game Over</h2>
+        <button class="return-button" @click="goToPreGame">Return Everyone to Menu</button>
+
         <div v-if="finishedPlayer">
             <div class="winner-section">
                 <h3 style="color: gold; font-size: 24px;">🏆 Winner: {{ finishedPlayer }} 🏆</h3>
@@ -15,39 +17,38 @@
             <div v-for="(player, index) in listOfPlayerNames" :key="index" 
                 :class="{ 'current-user': index === playerIndex }" 
                 class="player-item">
-                <!-- <span class="player-rank">#{index + 1}</span> -->
                 <span class="player-name">{{ player }}</span>
                 <span class="player-info">(Categories completed: {{ playersCategoriesNum[index] }}, Lives left: {{ playerLives[index] }})</span>
             </div>
         </div>
         <div class="category-section">
             <h3 style="margin-top: 20px;">Puzzle Categories:</h3>
-            <ul>
-                <li v-for="category in categories" :key="category.id">
+            <div class="categories-container">
+                <ul v-for="category in categories" :key="category.id" :class="'category-' + category.id" class="category">
                     <strong>{{ category.description }}</strong>
                     <ul>
                         <li v-for="word in category.words" :key="word">{{ word }}</li>
                     </ul>
-                </li>
-            </ul>
+                </ul>
+            </div>
         </div>
     </div>
 </template>
-  
-  <style scoped>
-  .end-container {
+
+<style scoped>
+.end-container {
     text-align: center;
     margin-top: 30px;
-  }
-  
-  .player-list {
+}
+
+.player-list {
     display: flex;
     flex-direction: column;
     align-items: center;
     margin-top: 20px;
-  }
-  
-  .player-item {
+}
+
+.player-item {
     display: flex;
     justify-content: center;
     align-items: center;
@@ -56,24 +57,85 @@
     border: 1px solid #ccc;
     border-radius: 5px;
     width: 60%; /* Adjust width as needed */
-  }
-  
-  .player-rank {
+}
+
+.player-rank {
     font-weight: bold;
     margin-right: 10px;
-  }
-  
-  .player-name {
+}
+
+.player-name {
     font-size: 16px;
     font-weight: bold;
     margin-right: 10px;
+}
 
-  }
-  </style>
+.return-button {
+    float: right; /* Aligns the button to the right side */
+    margin: 10px 30px 10px 0; /* Add margins for spacing */
+    padding: 10px 20px; /* Padding for a better button size */
+    background-color: #4CAF50; /* Button background color */
+    color: white; /* Button text color */
+    border: none; /* No border */
+    border-radius: 5px; /* Rounded corners */
+    cursor: pointer; /* Pointer cursor on hover */
+}
+
+.category-section {
+    margin-top: 20px;
+}
+
+.categories-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.category {
+    list-style-type: none; /* Remove bullet points */
+    margin: 0;
+    padding: 0;
+}
+
+.category ul {
+    list-style-type: none; /* Remove bullet points */
+    margin: 0;
+    padding: 0;
+}
+
+.category-1 {
+    background-color: #fbd400; /* Category ID 1 */
+}
+
+.category-2 {
+    background-color: #69e352; /* Category ID 2 */
+}
+
+.category-3 {
+    background-color: #5492ff; /* Category ID 3 */
+}
+
+.category-4 {
+    background-color: #df7bea; /* Category ID 4 */
+}
+
+@media (min-width: 800px) {
+    .categories-container {
+        flex-direction: row; /* Display categories side by side on larger screens */
+        justify-content: center; /* Center the categories */
+    }
+
+    .category {
+        margin: 0 20px; /* Add margin between categories */
+    }
+}
+</style>
   
   <script setup lang="ts">
   import { onMounted, ref, Ref } from 'vue';
   import { io} from "socket.io-client";
+  import { useRouter } from 'vue-router';
   
   const socket = io();
   const finishedPlayer = ref("");
@@ -88,6 +150,8 @@ const listOfPlayerNames: Ref<string[]> = ref([])
 const categories: Ref<PuzzleCategory[]> = ref([])
 const playersCategoriesNum: Ref<number[]> = ref([]);
   
+const router = useRouter(); // Initialize the Vue router
+
   
 socket.on("game-state-specific", (playLives: Record<number,number>, newPhase:GamePhase, categoriesPlayersCompleted:  Record<number, number>, playerWin: string) =>{
 //   console.log('please work', playLives)
@@ -120,6 +184,21 @@ socket.on("game-state", (newPlayerIndex: number, playersLives: Record<number,num
   playersCategoriesNum.value = Object.values(categoriesPlayersCompleted)
   // playCount.value = newPlayCount
 })
+
+
+socket.on("new-state", (changedState: string) => {
+    phase.value = changedState
+    if(phase.value === 'pre-game'){
+        router.push('/')
+    }
+});
+
+function goToPreGame() {
+  // Send a socket message to update the game state to pre-game
+  socket.emit('change-state', 'pre-game');
+  
+  // Navigate the user to the home page
+}
 
   </script>
   

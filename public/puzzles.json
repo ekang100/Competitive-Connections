@@ -54,5 +54,511 @@
                 "color": "#df7bea"
             }
         ]
+    },
+    
+        "3": {
+            "categories": [
+                {
+                    "id": 1,
+                    "description": "FACIAL FEATURES",
+                    "words": ["CHEEK", "EYE", "MOUTH", "NOSE"],
+                    "color": "#fbd400"
+                },
+                {
+                    "id": 2,
+                    "description": "SYNONYMS FOR EAT",
+                    "words": ["CHOW", "GOBBLE", "SCARF", "WOLF"],
+                    "color": "#69e352"
+                },
+                {
+                    "id": 3,
+                    "description": "DOG BREEDS, INFORMALLY",
+                    "words": ["LAB", "PEKE", "PIT", "POM"],
+                    "color": "#5492ff"
+                },
+                {
+                    "id": 4,
+                    "description": "MEMBERS OF A TRIO",
+                    "words": ["AMIGO", "KING", "STOOGE", "TENOR"],
+                    "color": "#df7bea"
+                }
+            ]
+        },
+        "4": {
+            "categories": [
+                {
+                    "id": 1,
+                    "description": "SNEAKER BRANDS",
+                    "words": ["ADIDAS", "NIKE", "PUMA", "REEBOK"],
+                    "color": "#fbd400"
+                },
+                {
+                    "id": 2,
+                    "description": "MUSICALS BEGINNING WITH “C”",
+                    "words": ["CABARET", "CAROUSEL", "CATS", "CHICAGO"],
+                    "color": "#69e352"
+                },
+                {
+                    "id": 3,
+                    "description": "CLEANING VERBS",
+                    "words": ["DUST", "MOP", "SWEEP", "VACUUM"],
+                    "color": "#5492ff"
+                },
+                {
+                    "id": 4,
+                    "description": "___ MAN SUPERHEROES",
+                    "words": ["BAT", "IRON", "SPIDER", "SUPER"],
+                    "color": "#df7bea"
+                }
+            ]
+        },
+        "5": {
+            "categories": [
+                {
+                    "id": 1,
+                    "description": "STREAMING SERVICES",
+                    "words": ["HULU", "NETFLIX", "PEACOCK", "PRIME"],
+                    "color": "#fbd400"
+                },
+                {
+                    "id": 2,
+                    "description": "CONDIMENTS",
+                    "words": ["KETCHUP", "MAYO", "RELISH", "TARTAR"],
+                    "color": "#69e352"
+                },
+                {
+                    "id": 3,
+                    "description": "SYNONYMS FOR SAD",
+                    "words": ["BLUE", "DOWN", "GLUM", "LOW"],
+                    "color": "#5492ff"
+                },
+                {
+                    "id": 4,
+                    "description": "CLUE CHARACTERS",
+                    "words": ["GREEN", "MUSTARD", "PLUM", "SCARLET"],
+                    "color": "#df7bea"
+                }
+            ]
+        },
+        "6": {
+            "categories": [
+                {
+                    "id": 1,
+                    "description": "MONOPOLY SQUARES",
+                    "words": ["BOARDWALK", "CHANCE", "GO", "JAIL"],
+                    "color": "#fbd400"
+                },
+                {
+                    "id": 2,
+                    "description": "SHADES OF BLUE",
+                    "words": ["BABY", "MIDNIGHT", "POWDER", "ROYAL"],
+                    "color": "#69e352"
+                },
+                {
+                    "id": 3,
+                    "description": "RAPPERS",
+                    "words": ["COMMON", "FUTURE", "ICE CUBE", "Q-TIP"],
+                    "color": "#5492ff"
+                },
+                {
+                    "id": 4,
+                    "description": "MEMBERS OF A SEPTET",
+                    "words": ["SEA", "SIN", "SISTER", "WONDER"],
+                    "color": "#df7bea"
+                }
+            ]
+        },
+        "7": {
+            "categories": [
+                {
+                    "id": 1,
+                    "description": "LEG PARTS",
+                    "words": ["ANKLE", "KNEE", "SHIN", "THIGH"],
+                    "color": "#fbd400"
+                },
+                {
+                    "id": 2,
+                    "description": "BABY ANIMALS",
+                    "words": ["CALF", "CUB", "JOEY", "KID"],
+                    "color": "#69e352"
+                },
+                {
+                    "id": 3,
+                    "description": "SLANG FOR TOILET",
+                    "words": ["CAN", "HEAD", "JOHN", "THRONE"],
+                    "color": "#5492ff"
+                },
+                {
+                    "id": 4,
+                    "description": "___ FISH THAT AREN’T FISH",
+                    "words": ["CRAY", "JELLY", "SILVER", "STAR"],
+                    "color": "#df7bea"
+                }
+            ]
+        },
+        "8": {
+            "categories": [
+                {
+                    "id": 1,
+                    "description": "BOARD GAMES",
+                    "words": ["BACKGAMMON", "CHECKERS", "CHESS", "GO"],
+                    "color": "#fbd400"
+                },
+                {
+                    "id": 2,
+                    "description": "MATTRESS SIZES",
+                    "words": ["FULL", "KING", "QUEEN", "TWIN"],
+                    "color": "#69e352"
+                },
+                {
+                    "id": 3,
+                    "description": "THINGS THAT ARE RED",
+                    "words": ["CHERRY", "FIRE TRUCK", "RUBY", "STOP SIGN"],
+                    "color": "#5492ff"
+                },
+                {
+                    "id": 4,
+                    "description": "THINGS WITH KEYS",
+                    "words": ["CRYPTOGRAPHY", "FLORIDA", "LOCKSMITH", "PIANO"],
+                    "color": "#df7bea"
+                }
+            ]
+        },
+        "9": {
+            "categories": [
+                {
+                    "id": 1,
+                    "description": "SPORTS",
+                    "words": ["CRICKET", "FENCING", "POLO", "SQUASH"],
+                    "color": "#fbd400"
+                },
+                {
+                    "id": 2,
+                    "description": "TOPS",
+                    "words": ["CAMI", "HALTER", "TANK", "TEE"],
+                    "color": "#69e352"
+                },
+                {
+                    "id": 3,
+                    "description": "VEGETABLES",
+                    "words": ["BEET", "CARROT", "CORN", "ONION"],
+                    "color": "#5492ff"
+                },
+                {
+                    "id": 4,
+                    "description": "INSECTS",
+                    "words": ["ANT", "BEETLE", "MANTIS", "TERMITE"],
+                    "color": "#df7bea"
+                }
+            ]
+        },
+        "10": {
+            "categories": [
+                {
+                    "id": 1,
+                    "description": "FRUIT",
+                    "words": ["DATE", "KIWI", "LEMON", "ORANGE"],
+                    "color": "#fbd400"
+                },
+                {
+                    "id": 2,
+                    "description": "COUNTRIES",
+                    "words": ["CHAD", "GEORGIA", "JORDAN", "TOGO"],
+                    "color": "#69e352"
+                },
+                {
+                    "id": 3,
+                    "description": "BIRDS",
+                    "words": ["CRANE", "JAY", "SWALLOW", "TURKEY"],
+                    "color": "#5492ff"
+                },
+                {
+                    "id": 4,
+                    "description": "ZODIAC SYMBOLS",
+                    "words": ["FISH", "GOAT", "SCALES", "TWINS"],
+                    "color": "#df7bea"
+                }
+            ]
+        },
+        "11": {
+            "categories": [
+                {
+                    "id": 1,
+                    "description": "SPICES BEGINNING WITH “C”",
+                    "words": ["CARDAMOM", "CLOVE", "CORIANDER", "CUMIN"],
+                    "color": "#fbd400"
+                },
+                {
+                    "id": 2,
+                    "description": "TERMS OF ENDEARMENT",
+                    "words": ["BOO", "HONEY", "SUGAR", "SWEETIE"],
+                    "color": "#69e352"
+                },
+                {
+                    "id": 3,
+                    "description": "THINGS WITH WINGS",
+                    "words": ["AIRPLANE", "ANGEL", "BIRD", "PEGASUS"],
+                    "color": "#5492ff"
+                },
+                {
+                    "id": 4,
+                    "description": "SPICE GIRLS",
+                    "words": ["BABY", "GINGER", "POSH", "SCARY"],
+                    "color": "#df7bea"
+                }
+            ]
+        },
+        "12": {
+            "categories": [
+                {
+                    "id": 1,
+                    "description": "ANIMAL GROUP NAMES",
+                    "words": ["FLOCK", "PACK", "POD", "SCHOOL"],
+                    "color": "#fbd400"
+                },
+                {
+                    "id": 2,
+                    "description": "DEADLY SINS",
+                    "words": ["ENVY", "GREED", "LUST", "PRIDE"],
+                    "color": "#69e352"
+                },
+                {
+                    "id": 3,
+                    "description": "SLOW ANIMALS",
+                    "words": ["LORIS", "SLOTH", "SNAIL", "TORTOISE"],
+                    "color": "#5492ff"
+                },
+                {
+                    "id": 4,
+                    "description": "TRIG FUNCTIONS",
+                    "words": ["COT", "SEC", "SIN", "TAN"],
+                    "color": "#df7bea"
+                }
+            ]
+        },
+        "13": {
+            "categories": [
+                {
+                    "id": 1,
+                    "description": "AIRLINES",
+                    "words": ["FRONTIER", "SPIRIT", "UNITED", "VIRGIN"],
+                    "color": "#fbd400"
+                },
+                {
+                    "id": 2,
+                    "description": "GREEK LETTERS",
+                    "words": ["BETA", "CHI", "DELTA", "IOTA"],
+                    "color": "#69e352"
+                },
+                {
+                    "id": 3,
+                    "description": "SILENT “G”",
+                    "words": ["GNAT", "GNAW", "GNOCCHI", "GNOME"],
+                    "color": "#5492ff"
+                },
+                {
+                    "id": 4,
+                    "description": "HOMOPHONES",
+                    "words": ["GNU", "KNEW", "NEW", "NU"],
+                    "color": "#df7bea"
+                }
+            ]
+        },
+        "14": {
+            "categories": [
+                {
+                    "id": 1,
+                    "description": "BEDS",
+                    "words": ["BUNK", "CANOPY", "MURPHY", "TRUNDLE"],
+                    "color": "#fbd400"
+                },
+                {
+                    "id": 2,
+                    "description": "FAMOUS BROTHERS",
+                    "words": ["JONAS", "MARX", "WARNER", "WRIGHT"],
+                    "color": "#69e352"
+                },
+                {
+                    "id": 3,
+                    "description": "HONDAS",
+                    "words": ["ACCORD", "CIVIC", "PASSPORT", "PILOT"],
+                    "color": "#5492ff"
+                },
+                {
+                    "id": 4,
+                    "description": "VIDEO GAME CHARACTERS",
+                    "words": ["CRASH", "LINK", "MARIO", "SONIC"],
+                    "color": "#df7bea"
+                }
+            ]
+        },
+        "15": {
+            "categories": [
+                {
+                    "id": 1,
+                    "description": "BIRD SOUNDS",
+                    "words": ["CAW", "CHIRP", "CLUCK", "TWEET"],
+                    "color": "#fbd400"
+                },
+                {
+                    "id": 2,
+                    "description": "COLORS",
+                    "words": ["BROWN", "PINK", "TURQUOISE", "VIOLET"],
+                    "color": "#69e352"
+                },
+                {
+                    "id": 3,
+                    "description": "FISHING GEAR",
+                    "words": ["LURE", "REEL", "ROD", "TACKLE"],
+                    "color": "#5492ff"
+                },
+                {
+                    "id": 4,
+                    "description": "FICTIONAL PIRATES",
+                    "words": ["HOOK", "JONES", "SILVER", "SPARROW"],
+                    "color": "#df7bea"
+                }
+            ]
+        },
+        "16": {
+            "categories": [
+                {
+                    "id": 1,
+                    "description": "COFFEE DRINKS",
+                    "words": ["AMERICANO", "CAPPUCCINO", "ESPRESSO", "LATTE"],
+                    "color": "#fbd400"
+                },
+                {
+                    "id": 2,
+                    "description": "TREE NUTS",
+                    "words": ["ALMOND", "CASHEW", "PECAN", "WALNUT"],
+                    "color": "#69e352"
+                },
+                {
+                    "id": 3,
+                    "description": "SHADES OF GREEN",
+                    "words": ["EMERALD", "FOREST", "KELLY", "OLIVE"],
+                    "color": "#5492ff"
+                },
+                {
+                    "id": 4,
+                    "description": "MR. ___",
+                    "words": ["BEAN", "CLEAN", "FOX", "PEANUT"],
+                    "color": "#df7bea"
+                }
+            ]
+        },
+        "17": {
+            "categories": [
+                {
+                    "id": 1,
+                    "description": "NECKWEAR",
+                    "words": ["ASCOT", "BOLO", "SCARF", "TIE"],
+                    "color": "#fbd400"
+                },
+                {
+                    "id": 2,
+                    "description": "SHIP DIRECTIONS",
+                    "words": ["BOW", "PORT", "STARBOARD", "STERN"],
+                    "color": "#69e352"
+                },
+                {
+                    "id": 3,
+                    "description": "DETERGENTS",
+                    "words": ["ALL", "ERA", "GAIN", "TIDE"],
+                    "color": "#5492ff"
+                },
+                {
+                    "id": 4,
+                    "description": "___ TRIANGLE",
+                    "words": ["ACUTE", "BERMUDA", "LOVE", "RIGHT"],
+                    "color": "#df7bea"
+                }
+            ]
+        },
+        "18": {
+            "categories": [
+                {
+                    "id": 1,
+                    "description": "MUSCLES, INFORMALLY",
+                    "words": ["LAT", "PEC", "QUAD", "TRI"],
+                    "color": "#fbd400"
+                },
+                {
+                    "id": 2,
+                    "description": "AWARDS",
+                    "words": ["CUP", "MEDAL", "RIBBON", "TROPHY"],
+                    "color": "#69e352"
+                },
+                {
+                    "id": 3,
+                    "description": "TITLE TV DOCTORS",
+                    "words": ["GREY", "HOUSE", "HOWSER", "QUINN"],
+                    "color": "#5492ff"
+                },
+                {
+                    "id": 4,
+                    "description": "NFL PLAYERS",
+                    "words": ["BEAR", "BILL", "BROWN", "COMMANDER"],
+                    "color": "#df7bea"
+                }
+            ]
+        },
+        "19": {
+            "categories": [
+                {
+                    "id": 1,
+                    "description": "OFF-WHITE SHADES",
+                    "words": ["CREAM", "EGGSHELL", "IVORY", "VANILLA"],
+                    "color": "#fbd400"
+                },
+                {
+                    "id": 2,
+                    "description": "ANTI-VAMPIRE",
+                    "words": ["CRUCIFIX", "GARLIC", "MIRROR", "STAKE"],
+                    "color": "#69e352"
+                },
+                {
+                    "id": 3,
+                    "description": "KINDS OF MEAT",
+                    "words": ["BEEF", "PORK", "POULTRY", "VENISON"],
+                    "color": "#5492ff"
+                },
+                {
+                    "id": 4,
+                    "description": "SYNONYMS FOR ARGUMENT",
+                    "words": ["QUARREL", "ROW", "SPAT", "TIFF"],
+                    "color": "#df7bea"
+                }
+            ]
+        },
+        "20": {
+            "categories": [
+                {
+                    "id": 1,
+                    "description": "GRAINS",
+                    "words": ["BARLEY", "OAT", "RYE", "SPELT"],
+                    "color": "#fbd400"
+                },
+                {
+                    "id": 2,
+                    "description": "ROYAL TITLES",
+                    "words": ["BARON", "EARL", "KING", "PRINCE"],
+                    "color": "#69e352"
+                },
+                {
+                    "id": 3,
+                    "description": "UNIVERSITIES",
+                    "words": ["BROWN", "DUKE", "HOWARD", "RICE"],
+                    "color": "#5492ff"
+                },
+                {
+                    "id": 4,
+                    "description": "BEST DIRECTOR OSCAR WINNERS",
+                    "words": ["BONG", "FORD", "LEE", "STONE"],
+                    "color": "#df7bea"
+                }
+            ]
+        }
     }
-}
+
