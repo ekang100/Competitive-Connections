@@ -53,7 +53,7 @@ e2e-test-job:
 feature-change-job:
   stage: deploy
   script:
-    - echo "Applying feature change: Changing 'Welcome' to 'Howdy' in App.vue..."
+    - echo "Applying feature change"
     - sed -i 's/Welcome/Howdy/' src/components/App.vue  # Change 'Welcome' to 'Howdy'
     - echo "Committing the change..."
     - git config --global user.email "anthony.cui@duke.edu"
