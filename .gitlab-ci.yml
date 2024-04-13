@@ -55,7 +55,7 @@ feature-change-job:
   script:
     - echo "Applying feature change"
     - git checkout tonys-thirdnary  # Check out the tonys-thirdnary branch
-    - git pull origin tonys-thirdnary  # Pull the latest changes from the tonys-thirdnary branch
+    # - git pull origin tonys-thirdnary  # Pull the latest changes from the tonys-thirdnary branch
     - sed -i 's/Welcome/Howdy/' ui/src/App.vue  # Change 'Welcome' to 'Howdy'
     - echo "Committing the change..."
     - git config --global user.email "anthony.cui@duke.edu"
