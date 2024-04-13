@@ -70,6 +70,7 @@ export interface GameState {
   playerLives: Record<number, number>; // Track player lives, index to index
   categoriesPlayersCompleted: Record<number, number>; //tracks number of categories a player completed
   timeRemaining: number; // Time remaining in seconds
+  playerWinner: string;
 }
 
 /**DOES THIS HAVE TO ONLY EXTRACT UNSELECTED TILES?
@@ -184,7 +185,8 @@ export function createEmptyGame(playerNames: string[]): GameState {
     phase: "pre-game",
     playerLives: initialPlayerLives,
     categoriesPlayersCompleted,
-    timeRemaining: 120,
+    timeRemaining: 60,                 //this is hardcoded rn
+    playerWinner: "",
   };
 
   // Print puzzle details
@@ -243,6 +245,7 @@ console.log('checkpoint2')
     if (state.categoriesPlayersCompleted[playerIndex] == 4) {
       console.log('game is over!!!!!')
       state.phase = "game-over";
+      state.playerWinner = state.playerNames[playerIndex]
     }
   }
   else if (state.playerLives[playerIndex]>0){
@@ -255,7 +258,7 @@ console.log('checkpoint2')
   if (winner !== null) {
     // Set game phase to "game-over" if there is a winner
     state.phase = "game-over";
-    return
+    return Object.values(state.tilesById);
   }
 
     return Object.values(state.tilesById);
@@ -268,6 +271,38 @@ export function filterTilesForPlayerPerspective(tiles: Tile[], playerIndex: numb
   return tiles.filter(tile => tile.playerIndex == null || tile.playerIndex === playerIndex)
 }
 
+export function startGameTimer(gameState: GameState, timeSet: number) {
+  // Define an interval that executes every second (1000 milliseconds)
+  if(gameState.phase !== 'play'){
+    gameState.timeRemaining = 0;
+  }
+  else{
+  gameState.timeRemaining = timeSet
+  
+  const intervalId = setInterval(() => {
+      // Decrease the remaining time by 1 second
+      gameState.timeRemaining -= 1;
+
+      // Check if the remaining time has reached 0 or below
+      if (gameState.timeRemaining <= 0) {
+          // Set the remaining time to 0
+          gameState.timeRemaining = 0;
+
+          // End the game if time runs out
+          gameState.phase = "game-over";
+
+          // Clear the interval since the game is over
+          clearInterval(intervalId);
+      }
+
+      // Emit the remaining time
+      console.log(`Time remaining: ${gameState.timeRemaining} seconds`);
+
+  }, 1000); // Run the function every second
+}
+  // Return the interval ID in case you need to stop the timer later
+  return;
+}
 
 
 

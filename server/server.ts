@@ -145,8 +145,10 @@ io.on('connection', client => {
       gameState.playerNames,
         // gameState.currentTurnPlayerIndex,
       gameState.phase,
-      getCurrentPuzzle().categories
+      getCurrentPuzzle().categories,
+      gameState.categoriesPlayersCompleted
       // gameState.playCount,
+      //can add here the list of players who won already since its in game state
     )
   }
   
@@ -190,7 +192,9 @@ io.on('connection', client => {
     io.emit(
       "game-state-specific",
        gameState.playerLives,
-       gameState.phase
+       gameState.phase,
+       gameState.categoriesPlayersCompleted,
+       gameState.playerWinner
     )
   })
 
@@ -222,11 +226,19 @@ io.on('connection', client => {
     }
   });
 
+  client.on("change-state", (changedState: string) => {
+    console.log(changedState)
+    io.emit(
+"new-state",
+changedState
+  )});
+
   client.on("new-game", () => {
     gameState = createEmptyGame(gameState.playerNames)
     gameState.phase = 'play'
     const updatedCards = Object.values(gameState.tilesById)
     emitUpdatedTilesForPlayers(updatedCards, true)
+    startGameTimer(gameState, timeSet)
     io.to("all").emit(
       "all-tiles", 
       updatedCards,
@@ -328,7 +340,10 @@ client.connect().then(() => {
     const params = {
       scope: 'openid profile email',
       nonce: generators.nonce(),
-      redirect_uri: 'http://10.198.2.194:8221/login-callback',
+      // redirect_uri: 'http://10.198.2.194:8221/login-callback', //this is ellies server
+      redirect_uri: 'http://10.198.121.233:8221/login-callback', // this is eduroam: tonys server
+      // redirect_uri: 'http://10.197.59.172:8221/login-callback', // this is dukeblue: tonys server
+
       state: generators.state(),
     }
   
