@@ -54,7 +54,7 @@ feature-change-job:
   stage: deploy
   script:
     - echo "Applying feature change"
-    - sed -i 's/Welcome/Howdy/' src/components/App.vue  # Change 'Welcome' to 'Howdy'
+    - sed -i 's/Welcome/Howdy/' ui/src/App.vue  # Change 'Welcome' to 'Howdy'
     - echo "Committing the change..."
     - git config --global user.email "anthony.cui@duke.edu"
     - git config --global user.name "anthony.cui"
