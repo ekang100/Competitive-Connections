@@ -1,7 +1,7 @@
 import { createServer } from "http"
 import { Server } from "socket.io"
 import {createEmptyGame, doAction, filterTilesForPlayerPerspective, getCurrentPuzzle } from "./model"
-import { Puzzle, PuzzleCategory, tileId, allPuzzles, Tile, startGameTimer } from "./model"
+import { Puzzle, PuzzleCategory, tileId, allPuzzles, Tile, Config, startGameTimer } from "./model"
 import express, { NextFunction, Request, Response } from 'express'
 import bodyParser from 'body-parser'
 import pino from 'pino'
@@ -103,6 +103,13 @@ io.use(wrap(sessionMiddleware))
 const playerUserIds = ["anthony.cui", "ek199"]
 let gameState = createEmptyGame(playerUserIds)
 let timeSet: number = 60
+let currentConfig: Config = {
+  board: 1,
+  maxLives: 3,
+  timeLimt: 600,
+  mode: "easy",
+}
+
 
 function emitUpdatedTilesForPlayers(tiles: Tile[], newGame = false) {   
   gameState.playerNames.forEach((_, i) => {      
@@ -241,7 +248,6 @@ changedState
        gameState.playerLives,
        gameState.phase,
        gameState.categoriesPlayersCompleted
-
     )  
     io.emit('game-time', gameState.timeRemaining);
     
@@ -256,9 +262,39 @@ changedState
         )
       }
   }, 1000);
-  
-  
-  
+
+  })
+
+  client.on("get-config", () => {
+    client.emit("get-config-reply", currentConfig)
+  })
+
+  // client.on("update-config", (newConfig: Partial<Config>) => {
+  //   if (typeof newConfig.board === 'number' &&
+  //           typeof newConfig.maxLives === 'number' &&
+  //           Object.keys(newConfig).length === 2 &&
+  //           newConfig.board >= 1 &&
+  //           newConfig.board <= 2 && // hard coded max for now
+  //           newConfig.maxLives <= 10) {
+  //           setTimeout(() => {
+  //               currentConfig = { ...currentConfig, ...newConfig };
+  //               client.emit("update-config-reply", true);
+  //               gameState = createEmptyGame(gameState.playerNames, currentConfig.numberOfDecks, currentConfig.rankLimit);
+  //               const updatedCards = Object.values(gameState.cardsById);
+  //               emitUpdatedCardsForPlayers(updatedCards, true);
+  //               io.to("all").emit("all-cards", updatedCards);
+  //               io.emit("game-state", gameState.currentTurnPlayerIndex, gameState.phase, gameState.playCount, gameState.playersWithFewCards);
+  //           }, 2000);
+  //       } else {
+  //           client.emit("update-config-reply", false);
+  //       }
+  // })
+  // client.on('redirectToNewGame', newGameURL => {
+  //   // redirect to new URL
+  //   window.location = newGameURL;
+//});
+  client.on("redirect", (url: string) => {
+    io.emit("redirect", url)
   })
 })
 
@@ -278,6 +314,17 @@ app.post(
 app.get("/api/user", (req, res) => {
   res.json(req.user || {})
 })
+
+app.get('/api/game/players/count', async (req, res) => {
+  const collection = db.collection('players');
+
+  try {
+    const playersCount = await collection.countDocuments();
+    res.json({ playersCount });
+  } catch (error) {
+    res.status(500).json({ error: 'Unable to fetch player count' });
+  }
+});
 
 // connect to Mongo
 client.connect().then(() => {
