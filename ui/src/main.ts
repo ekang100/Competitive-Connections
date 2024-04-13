@@ -7,6 +7,7 @@ import 'bootstrap-vue/dist/bootstrap-vue.css'
 
 import App from './App.vue'
 import Game from './views/Game.vue'
+import Start from './views/Start.vue'
 
 const routes = [
 	{
@@ -17,6 +18,10 @@ const routes = [
 		// 		playerIndex: route.params.playerIndex
 		// 	}
 		// }
+	},
+	{
+		path: "/",
+		component: Start,
 	}
 ]
 

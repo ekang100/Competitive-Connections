@@ -9,6 +9,13 @@ export interface Player{
   groups: ["competitive-connections-admin"]
 }
 
+export interface Config {
+  board: number,
+  maxLives: number,
+  timeLimt: number,
+  mode: "easy" | "hard"
+}
+
 
 export interface PuzzleCategory{
   id: number

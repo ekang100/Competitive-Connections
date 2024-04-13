@@ -1,7 +1,7 @@
 import { createServer } from "http"
 import { Server } from "socket.io"
 import {createEmptyGame, doAction, filterTilesForPlayerPerspective, getCurrentPuzzle } from "./model"
-import { Puzzle, PuzzleCategory, tileId, allPuzzles, Tile } from "./model"
+import { Puzzle, PuzzleCategory, tileId, allPuzzles, Tile, Config } from "./model"
 import express, { NextFunction, Request, Response } from 'express'
 import bodyParser from 'body-parser'
 import pino from 'pino'
@@ -102,6 +102,12 @@ io.use(wrap(sessionMiddleware))
 // hard-coded game configuration
 const playerUserIds = ["anthony.cui", "ek199"]
 let gameState = createEmptyGame(playerUserIds)
+let currentConfig: Config = {
+  board: 1,
+  maxLives: 3,
+  timeLimt: 600,
+  mode: "easy",
+}
 
 
 function emitUpdatedTilesForPlayers(tiles: Tile[], newGame = false) {   
@@ -229,6 +235,31 @@ io.on('connection', client => {
        gameState.playerLives,
        gameState.phase
     )  })
+
+  client.on("get-config", () => {
+    client.emit("get-config-reply", currentConfig)
+  })
+
+  // client.on("update-config", (newConfig: Partial<Config>) => {
+  //   if (typeof newConfig.board === 'number' &&
+  //           typeof newConfig.maxLives === 'number' &&
+  //           Object.keys(newConfig).length === 2 &&
+  //           newConfig.board >= 1 &&
+  //           newConfig.board <= 2 && // hard coded max for now
+  //           newConfig.maxLives <= 10) {
+  //           setTimeout(() => {
+  //               currentConfig = { ...currentConfig, ...newConfig };
+  //               client.emit("update-config-reply", true);
+  //               gameState = createEmptyGame(gameState.playerNames, currentConfig.numberOfDecks, currentConfig.rankLimit);
+  //               const updatedCards = Object.values(gameState.cardsById);
+  //               emitUpdatedCardsForPlayers(updatedCards, true);
+  //               io.to("all").emit("all-cards", updatedCards);
+  //               io.emit("game-state", gameState.currentTurnPlayerIndex, gameState.phase, gameState.playCount, gameState.playersWithFewCards);
+  //           }, 2000);
+  //       } else {
+  //           client.emit("update-config-reply", false);
+  //       }
+  // })
 })
 
 // app routes
@@ -262,7 +293,7 @@ client.connect().then(() => {
     const params = {
       scope: 'openid profile email',
       nonce: generators.nonce(),
-      redirect_uri: 'http://10.198.2.194:8221/login-callback',
+      redirect_uri: 'http://10.197.8.230:8221/login-callback',
       state: generators.state(),
     }
   
