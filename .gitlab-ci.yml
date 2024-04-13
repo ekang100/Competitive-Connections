@@ -58,7 +58,7 @@ feature-change-job:
     - echo "Committing the change..."
     - git config --global user.email "anthony.cui@duke.edu"
     - git config --global user.name "anthony.cui"
-    - git commit -m "Change 'Welcome' to 'Howdy' in App.vue"
+    - git commit -am "Change 'Welcome' to 'Howdy' in App.vue"
     - git push origin main  # Push the change back to the repository
     - echo "Feature change applied and committed to repository."
 
