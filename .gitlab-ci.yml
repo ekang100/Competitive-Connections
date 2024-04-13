@@ -62,6 +62,8 @@ feature-change-job:
     - git config --global user.name "anthony.cui"
     - git commit -am "Change 'Welcome' to 'Howdy' in App.vue"
     - echo "Configuring authentication for push..."
+    - echo "${TOKEN:0:5}..."
+
     - git remote set-url origin "https://$TOKEN@coursework.cs.duke.edu/anthony.cui/competitive-connections.git"
     - git push origin tonys-thirdnary  # Push the change back to the tonys-thirdnary branch
     - echo "Feature change applied and committed to repository."
