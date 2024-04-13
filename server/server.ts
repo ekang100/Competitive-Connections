@@ -260,6 +260,13 @@ io.on('connection', client => {
   //           client.emit("update-config-reply", false);
   //       }
   // })
+  // client.on('redirectToNewGame', newGameURL => {
+  //   // redirect to new URL
+  //   window.location = newGameURL;
+//});
+  client.on("redirect", (url: string) => {
+    io.emit("redirect", url)
+  })
 })
 
 // app routes
@@ -279,6 +286,17 @@ app.get("/api/user", (req, res) => {
   res.json(req.user || {})
 })
 
+app.get('/api/game/players/count', async (req, res) => {
+  const collection = db.collection('players');
+
+  try {
+    const playersCount = await collection.countDocuments();
+    res.json({ playersCount });
+  } catch (error) {
+    res.status(500).json({ error: 'Unable to fetch player count' });
+  }
+});
+
 // connect to Mongo
 client.connect().then(() => {
   logger.info('connected successfully to MongoDB')
@@ -293,7 +311,7 @@ client.connect().then(() => {
     const params = {
       scope: 'openid profile email',
       nonce: generators.nonce(),
-      redirect_uri: 'http://10.197.8.230:8221/login-callback',
+      redirect_uri: 'http://10.198.2.194:8221/login-callback',
       state: generators.state(),
     }
   

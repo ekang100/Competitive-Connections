@@ -1,10 +1,10 @@
 <template>
     <div class="home">
-        <h1>Welcome to the Game</h1>
+        <h1>Competitive Connections</h1>
         <div v-if="isAdmin">
             <h2>Admin Controls</h2>
             <!-- Admin controls for starting a new game and configuring settings -->
-            <button @click="redirectToGame">Start New Game</button>
+            <button @click="startGame">Start New Game</button>
             <div>
                 <label>Game Settings:</label>
                 <!-- Input fields for configuring game settings -->
@@ -37,12 +37,11 @@
                 </b-modal>
             </div>
         </div>
+        <div v-else-if="isLoggedIn">
+            <h2>Waiting...</h2>
+        </div>
         <div v-else>
-            <h2>Join Game</h2>
-            <!-- Form for non-admins to join a created game -->
-            <!-- Example: -->
-            <!-- <input type="text" v-model="joinGameCode" placeholder="Game Code"> -->
-            <!-- <button @click="joinGame">Join Game</button> -->
+            <h2>You need to log in to play</h2>
         </div>
     </div>
 </template>
@@ -53,6 +52,7 @@ import { ref } from "vue"
 const socket = io()
 const busy = ref(false)
 const isAdmin = ref(false)
+const isLoggedIn = ref(false)
 
 const board = ref(1)
 const maxLives = ref(3)
@@ -68,10 +68,34 @@ async function checkAdmin() {
 
 socket.on("connect", checkAdmin)
 
-async function redirectToGame() {
-    //await fetch("/api/game/new", { method: "POST" })
-    window.location.href = "/0"
+async function checkLoggedIn() {
+    const user = await (await fetch("/api/user")).json()
+    isLoggedIn.value = user.name != null
 }
+
+socket.on("connect", checkLoggedIn)
+
+socket.on("redirect", (url: string) => {
+    window.location.href = url
+})
+
+async function startGame() {
+    await new Promise<void>((resolve, reject) => {
+    socket.emit("redirect", "/0")
+    socket.once("redirect-reply",  (success: boolean) => {
+        if (success) {
+          resolve();
+        } else {
+          reject(new Error("Update config failed"));
+
+        }
+      })
+    })
+}
+
+// socket.on("redirect", (url: string) => {
+//     window.location.href = url
+// })
 
 async function getConfig() {
   //busy.value = true
