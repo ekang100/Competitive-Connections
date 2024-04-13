@@ -49,24 +49,17 @@ e2e-test-job:
     - sleep 5
     - echo "E2E tests completed successfully."
 
-# Apply Feature Change Job
 feature-change-job:
   stage: deploy
   script:
     - echo "Applying feature change"
-    - git checkout tonys-thirdnary  # Check out the tonys-thirdnary branch
-    # - git pull origin tonys-thirdnary  # Pull the latest changes from the tonys-thirdnary branch
-    - sed -i 's/Welcome/Howdy/' ui/src/App.vue  # Change 'Welcome' to 'Howdy'
-    - echo "Committing the change..."
-    - git config --global user.email "anthony.cui@duke.edu"
-    - git config --global user.name "anthony.cui"
-    - git commit -am "Change 'Welcome' to 'Howdy' in App.vue"
-    - echo "Configuring authentication for push..."
-    - echo "${TOKEN:0:5}..."
-
-    - git remote set-url origin "https://$TOKEN@coursework.cs.duke.edu/anthony.cui/competitive-connections.git"
-    - git push origin tonys-thirdnary  # Push the change back to the tonys-thirdnary branch
-    - echo "Feature change applied and committed to repository."
+    # - # Connect to the server or container where the application is running
+    # - # For example, use SSH or Docker exec commands
+    - ssh user@server "sed -i 's/Welcome/Howdy/' /path/to/ui/src/App.vue"  # Change 'Welcome' to 'Howdy'
+    - echo "Feature change applied on the running application."
+    # - # Optionally restart the application or reload the configuration
+    - ssh user@server "systemctl restart app"  # Restart the application
+    - echo "Application restarted to apply changes."
 
 deploy-job:      # This job runs in the deploy stage.
   stage: deploy  # It only runs when *both* jobs in the test stage complete successfully.
