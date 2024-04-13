@@ -1,7 +1,7 @@
 import { createServer } from "http"
 import { Server } from "socket.io"
 import {createEmptyGame, doAction, filterTilesForPlayerPerspective, getCurrentPuzzle } from "./model"
-import { Puzzle, PuzzleCategory, tileId, allPuzzles, Tile, Config } from "./model"
+import { Puzzle, PuzzleCategory, tileId, allPuzzles, Tile, Config, startGameTimer } from "./model"
 import express, { NextFunction, Request, Response } from 'express'
 import bodyParser from 'body-parser'
 import pino from 'pino'
@@ -102,6 +102,7 @@ io.use(wrap(sessionMiddleware))
 // hard-coded game configuration
 const playerUserIds = ["anthony.cui", "ek199"]
 let gameState = createEmptyGame(playerUserIds)
+let timeSet: number = 60
 let currentConfig: Config = {
   board: 1,
   maxLives: 3,
@@ -233,8 +234,24 @@ io.on('connection', client => {
     io.emit(
       "game-state-specific",
        gameState.playerLives,
-       gameState.phase
-    )  })
+       gameState.phase,
+       gameState.categoriesPlayersCompleted
+    )  
+    io.emit('game-time', gameState.timeRemaining);
+    
+     // Emit the remaining game time every second to all connected clients
+     const emitGameTime = setInterval(() => {
+      io.emit('game-time', gameState.timeRemaining);
+
+      // If the game is over, clear the interval
+      if (gameState.phase === "game-over") {
+          clearInterval(emitGameTime);
+          io.emit('game-state-specific', gameState.playerLives, gameState.phase, gameState.categoriesPlayersCompleted
+        )
+      }
+  }, 1000);
+
+  })
 
   client.on("get-config", () => {
     client.emit("get-config-reply", currentConfig)
