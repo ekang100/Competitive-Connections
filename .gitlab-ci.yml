@@ -46,7 +46,7 @@ e2e-test-job:
   stage: test
   script:
     - echo "Running end-to-end tests... This will take about 120 seconds."
-    - sleep 120
+    - sleep 5
     - echo "E2E tests completed successfully."
 
 # Apply Feature Change Job
@@ -54,7 +54,8 @@ feature-change-job:
   stage: deploy
   script:
     - echo "Applying feature change"
-    - git checkout main
+    - git checkout tonys-thirdnary  # Check out the tonys-thirdnary branch
+    - git pull origin tonys-thirdnary  # Pull the latest changes from the tonys-thirdnary branch
     - sed -i 's/Welcome/Howdy/' ui/src/App.vue  # Change 'Welcome' to 'Howdy'
     - echo "Committing the change..."
     - git config --global user.email "anthony.cui@duke.edu"
@@ -62,7 +63,7 @@ feature-change-job:
     - git commit -am "Change 'Welcome' to 'Howdy' in App.vue"
     - echo "Configuring authentication for push..."
     - git remote set-url origin "https://$TOKEN@coursework.cs.duke.edu/anthony.cui/competitive-connections.git"
-    - git push origin main  # Push the change back to the repository
+    - git push origin tonys-thirdnary  # Push the change back to the tonys-thirdnary branch
     - echo "Feature change applied and committed to repository."
 
 deploy-job:      # This job runs in the deploy stage.
