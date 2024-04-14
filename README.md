@@ -5,7 +5,7 @@
 ## Server
 ```bash
 cd server
-docker build -t lecture19-smoothie-stand-server .
+docker build -t competitive-connections-server .
 cd ..
 ```
 
