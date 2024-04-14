@@ -12,6 +12,7 @@ import MongoStore from 'connect-mongo'
 import { Issuer, Strategy, generators } from 'openid-client'
 import passport from 'passport'
 import { gitlab } from "./secrets"
+import { emit } from "process"
 
 // set up Mongo
 const mongoUrl = process.env.MONGO_URL || 'mongodb://127.0.0.1:27017'
@@ -101,14 +102,14 @@ io.use(wrap(sessionMiddleware))
 
 // hard-coded game configuration
 const playerUserIds = ["anthony.cui", "ek199"]
-let gameState = createEmptyGame(playerUserIds)
-let timeSet: number = 60
 let currentConfig: Config = {
   board: 1,
   maxLives: 3,
-  timeLimt: 600,
+  timeRemaining: 100,
   mode: "easy",
 }
+let gameState = createEmptyGame(playerUserIds, currentConfig.board, currentConfig.maxLives, currentConfig.timeRemaining, currentConfig.mode)
+// let timeSet: number = currentConfig.timeLimt
 
 
 function emitUpdatedTilesForPlayers(tiles: Tile[], newGame = false) {   
@@ -137,6 +138,8 @@ io.on('connection', client => {
     return
   }
 
+  
+// io.emit("game-state", playerIndex, gameState.playerLives, gameState.playerNames, gameState.phase, getCurrentPuzzle().categories, gameState.categoriesPlayersCompleted, gameState.timeRemaining, gameState.board, gameState.mode, gameState.timeRemaining);
   function emitGameState() {      
     client.emit(
       "game-state", 
@@ -146,7 +149,10 @@ io.on('connection', client => {
         // gameState.currentTurnPlayerIndex,
       gameState.phase,
       getCurrentPuzzle().categories,
-      gameState.categoriesPlayersCompleted
+      gameState.categoriesPlayersCompleted,
+      currentConfig.board,
+      currentConfig.mode, 
+      currentConfig.timeRemaining,
       // gameState.playCount,
       //can add here the list of players who won already since its in game state
     )
@@ -234,11 +240,11 @@ changedState
   )});
 
   client.on("new-game", () => {
-    gameState = createEmptyGame(gameState.playerNames)
+    gameState = createEmptyGame(gameState.playerNames, currentConfig.board, currentConfig.maxLives, currentConfig.timeRemaining, currentConfig.mode)
     gameState.phase = 'play'
     const updatedCards = Object.values(gameState.tilesById)
     emitUpdatedTilesForPlayers(updatedCards, true)
-    startGameTimer(gameState, timeSet)
+    startGameTimer(gameState, currentConfig.timeRemaining)
     io.to("all").emit(
       "all-tiles", 
       updatedCards,
@@ -269,30 +275,44 @@ changedState
     client.emit("get-config-reply", currentConfig)
   })
 
-  // client.on("update-config", (newConfig: Partial<Config>) => {
-  //   if (typeof newConfig.board === 'number' &&
-  //           typeof newConfig.maxLives === 'number' &&
-  //           Object.keys(newConfig).length === 2 &&
-  //           newConfig.board >= 1 &&
-  //           newConfig.board <= 2 && // hard coded max for now
-  //           newConfig.maxLives <= 10) {
-  //           setTimeout(() => {
-  //               currentConfig = { ...currentConfig, ...newConfig };
-  //               client.emit("update-config-reply", true);
-  //               gameState = createEmptyGame(gameState.playerNames, currentConfig.numberOfDecks, currentConfig.rankLimit);
-  //               const updatedCards = Object.values(gameState.cardsById);
-  //               emitUpdatedCardsForPlayers(updatedCards, true);
-  //               io.to("all").emit("all-cards", updatedCards);
-  //               io.emit("game-state", gameState.currentTurnPlayerIndex, gameState.phase, gameState.playCount, gameState.playersWithFewCards);
-  //           }, 2000);
-  //       } else {
-  //           client.emit("update-config-reply", false);
-  //       }
-  // })
-  // client.on('redirectToNewGame', newGameURL => {
-  //   // redirect to new URL
-  //   window.location = newGameURL;
-//});
+  // playerNames: string[];
+  // tilesById: Record<tileId, Tile>;
+  // playersCompleted: string[];
+  // phase: GamePhase;
+  // playerLives: Record<number, number>; // Track player lives, index to index
+  // categoriesPlayersCompleted: Record<number, number>; //tracks number of categories a player completed
+  // timeRemaining: number; // Time remaining in seconds
+  // playerWinner: string;
+
+  client.on("update-config", (newConfig: Partial<Config>) => {
+    if (typeof newConfig.board === 'number' //&&
+            // typeof newConfig.maxLives === 'number' &&
+            // Object.keys(newConfig).length === 2 &&
+            // newConfig.board >= 1 &&
+            // newConfig.board <= 2 && // hard coded max for now
+            // newConfig.maxLives <= 10
+          )
+          {
+            setTimeout(() => {
+                //currentConfig = { ...currentConfig, ...newConfig };
+                currentConfig.board = newConfig.board;
+                currentConfig.maxLives = newConfig.maxLives;
+                currentConfig.timeRemaining = newConfig.timeRemaining;
+                currentConfig.mode = newConfig.mode;
+                console.log("new config:", currentConfig)
+                client.emit("update-config-reply", true);
+                gameState = createEmptyGame(gameState.playerNames, currentConfig.board, currentConfig.maxLives, currentConfig.timeRemaining, currentConfig.mode);
+                const updatedTiles = Object.values(gameState.tilesById);
+                emitUpdatedTilesForPlayers(updatedTiles, true);
+                io.to("all").emit("all-tiles", updatedTiles);
+                // ocket.on("game-state", (newPlayerIndex: number, playersLives: Record<number,number> , playerNames: String[], newPhase: GamePhase, puzzleCategories: PuzzleCategory[], categoriesPlayersCompleted:  Record<number, number>, newBoard: number, newMode: string, timeRemain:number ) => {
+                io.emit("game-state", playerIndex, gameState.playerLives, gameState.playerNames, gameState.phase, getCurrentPuzzle().categories, gameState.categoriesPlayersCompleted, gameState.board, gameState.mode, gameState.timeRemaining);
+            }, 2000);
+        } else {
+            client.emit("update-config-reply", false);
+        }
+  })
+
   client.on("redirect", (url: string) => {
     io.emit("redirect", url)
   })
@@ -340,8 +360,8 @@ client.connect().then(() => {
     const params = {
       scope: 'openid profile email',
       nonce: generators.nonce(),
-      // redirect_uri: 'http://10.198.2.194:8221/login-callback', //this is ellies server
-      redirect_uri: 'http://10.198.121.233:8221/login-callback', // this is eduroam: tonys server
+      redirect_uri: 'http://10.198.2.194:8221/login-callback', //this is ellies server
+      // redirect_uri: 'http://10.198.121.233:8221/login-callback', // this is eduroam: tonys server
       // redirect_uri: 'http://10.197.59.172:8221/login-callback', // this is dukeblue: tonys server
 
       state: generators.state(),

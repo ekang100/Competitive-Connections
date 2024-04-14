@@ -16,7 +16,7 @@
                 <b-overlay :show="busy" rounded="sm">
                     <b-form @submit.stop.prevent="updateConfig(config)">
                     <b-form-group label="Choose board:" label-for="board">
-                        <b-form-input number id="decks" type="number" v-model="board" :min="1" :max="2"></b-form-input>
+                        <b-form-input number id="decks" type="number" v-model="board" :min="0" :max="1"></b-form-input>
                     </b-form-group>
 
                     <b-form-group label="Lives:" label-for="lives">
@@ -24,7 +24,7 @@
                     </b-form-group>
 
                     <b-form-group label="Time Limit:" label-for="time">
-                        <b-form-input number id="rank" type="number" v-model="timeLimit" :min="1" :max="600"></b-form-input>
+                        <b-form-input number id="rank" type="number" v-model="timeRemaining" :min="1" :max="600"></b-form-input>
                     </b-form-group>
 
                     <b-form-group label="Mode:" label-for="mode">
@@ -48,7 +48,7 @@
 
 <script setup lang="ts">
 import { io } from "socket.io-client"
-import { ref } from "vue"
+import { Ref, computed, ref } from "vue"
 const socket = io()
 const busy = ref(false)
 const isAdmin = ref(false)
@@ -56,10 +56,11 @@ const isLoggedIn = ref(false)
 
 const board = ref(1)
 const maxLives = ref(3)
-const timeLimit = ref(300)
+const timeRemaining = ref(100);
 const mode = ref("easy")
 
-const config = ref({ board: board.value, maxLives: maxLives.value, timeLimit: timeLimit.value, mode: mode.value })
+// const config = ref({ board: board.value, maxLives: maxLives.value, timeLimit: timeRemaining.value, mode: mode.value })
+const config = computed(() => ({ board: board.value, maxLives: maxLives.value, timeRemaining: timeRemaining.value, mode: mode.value }))
 
 async function checkAdmin() {
     const user = await (await fetch("/api/user")).json()
@@ -77,6 +78,7 @@ socket.on("connect", checkLoggedIn)
 
 socket.on("redirect", (url: string) => {
     window.location.href = url
+    socket.emit("new-game")
 })
 
 async function startGame() {
@@ -93,30 +95,23 @@ async function startGame() {
     })
 }
 
-// socket.on("redirect", (url: string) => {
-//     window.location.href = url
-// })
-
 async function getConfig() {
-  //busy.value = true
-  const config = await new Promise<{ board : number, maxLives : number, timeLimit : number, mode : string }>((resolve, reject) => {
-    // socket.emit("get-config", (config: { numberOfDecks: number, rankLimit: number }) => {
-    //   resolve(config)
-    // })
+  busy.value = true
+  const config = await new Promise<{ board : number, maxLives : number, timeRemaining : number, mode : string }>((resolve, reject) => {
     socket.emit("get-config")
-    socket.once("get-config-reply", (config: { board : number, maxLives : number, timeLimit : number, mode : string }) => {
+    socket.once("get-config-reply", (config: { board : number, maxLives : number, timeRemaining : number, mode : string }) => {
       resolve(config)
     })
   })
   board.value = config.board
   maxLives.value = config.maxLives
-  timeLimit.value = config.timeLimit
+  timeRemaining.value = config.timeRemaining
   mode.value = config.mode
-  //busy.value = false
+  busy.value = false
 }
 
-async function updateConfig(config: { board : number, maxLives : number, timeLimit : number, mode : string }) {
-  //busy.value = true
+async function updateConfig(config: { board : number, maxLives : number, timeRemaining : number, mode : string }) {
+  busy.value = true
   await new Promise<void>((resolve, reject) => {
     // socket.emit("update-config", config, () => {
     //   resolve()
@@ -131,7 +126,7 @@ async function updateConfig(config: { board : number, maxLives : number, timeLim
         }
       })
   })
-  //busy.value = false
+  busy.value = false
 }
 
 

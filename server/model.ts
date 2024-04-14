@@ -1,4 +1,5 @@
 ///////////// --> data model for connections
+import { config } from "process";
 import * as puzzlesData from "../public/puzzles.json";
 
 export interface Player{
@@ -12,7 +13,7 @@ export interface Player{
 export interface Config {
   board: number,
   maxLives: number,
-  timeLimt: number,
+  timeRemaining: number,
   mode: "easy" | "hard"
 }
 
@@ -71,6 +72,8 @@ export interface GameState {
   categoriesPlayersCompleted: Record<number, number>; //tracks number of categories a player completed
   timeRemaining: number; // Time remaining in seconds
   playerWinner: string;
+  board: number;
+  mode: string;
 }
 
 /**DOES THIS HAVE TO ONLY EXTRACT UNSELECTED TILES?
@@ -135,13 +138,28 @@ function printPuzzle(puzzle: Puzzle): void {
 
 // Modified createEmptyGame function
 
-export function createEmptyGame(playerNames: string[]): GameState {
+// export interface GameState {
+//   playerNames: string[];
+//   tilesById: Record<tileId, Tile>;
+//   playersCompleted: string[];
+//   phase: GamePhase;
+//   playerLives: Record<number, number>; // Track player lives, index to index
+//   categoriesPlayersCompleted: Record<number, number>; //tracks number of categories a player completed
+//   timeRemaining: number; // Time remaining in seconds
+//   playerWinner: string;
+//   board: number;
+//   mode: string;
+// }
+
+export function createEmptyGame(playerNames: string[], board: number, maxLives: number, timeSet:number, mode:string ): GameState {
   // Get a random puzzle
-  const randomPuzzle = getRandomPuzzle();
-  currentPuzzle = randomPuzzle
+  // const randomPuzzle = getRandomPuzzle();
+  // currentPuzzle = randomPuzzle
+  const configPuzzle = allPuzzles[board]
+  currentPuzzle = configPuzzle
   
   // If no puzzle is found, return null
-  if (!randomPuzzle) {
+  if (!configPuzzle) {
     console.log('Puzzle not found!');
     return null;
   }
@@ -152,7 +170,7 @@ export function createEmptyGame(playerNames: string[]): GameState {
   const categoriesPlayersCompleted: Record<number, number> = {};
   // Initialize tiles based on puzzle categories and clues
   playerNames.forEach((_, playerIndex) => { // Use playerIndex instead of name
-    initialPlayerLives[playerIndex] = 4; // Set initial lives to 4 for each player using playerIndex
+    initialPlayerLives[playerIndex] = maxLives; // Set initial lives to 4 for each player using playerIndex
     categoriesPlayersCompleted[playerIndex] = 0;
   });
   const tiles: Tile[] = [];
@@ -160,7 +178,7 @@ export function createEmptyGame(playerNames: string[]): GameState {
   // Iterate through each player
   playerNames.forEach((name, playerIndex) => {
     // Iterate through each category
-    randomPuzzle.categories.forEach((category) => {
+    configPuzzle.categories.forEach((category) => {
       // Iterate through each word in the category
       category.words.forEach((word, wordIndex) => {
         const tile: Tile = {
@@ -185,12 +203,14 @@ export function createEmptyGame(playerNames: string[]): GameState {
     phase: "pre-game",
     playerLives: initialPlayerLives,
     categoriesPlayersCompleted,
-    timeRemaining: 60,                 //this is hardcoded rn
+    timeRemaining: timeSet,                 //this is hardcoded rn
     playerWinner: "",
+    board: board,
+    mode: mode,
   };
 
   // Print puzzle details
-  printPuzzle(randomPuzzle);
+  printPuzzle(configPuzzle);
 
   // Return the game state
   return gameState;

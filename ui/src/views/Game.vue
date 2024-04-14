@@ -146,6 +146,8 @@ const tiles: Ref<Tile[]> = ref([])
 const phase = ref("")
 // const playCount = ref(-1)
 const timeRemaining: Ref<number> = ref(0);
+const board: Ref<number> = ref(0);
+const mode: Ref<string> = ref("")
 
 // const myTurn = computed(() => currentTurnPlayerIndex.value === playerIndex.value && phase.value !== "game-over")
 socket.on("game-time", (remainingTime: number) => {
@@ -160,7 +162,10 @@ socket.on("updated-tiles", (updatedTiles: Tile[]) => {
   applyUpdatedCards(updatedTiles)
 })
 
-socket.on("game-state", (newPlayerIndex: number, playersLives: Record<number,number> , playerNames: String[], newPhase: GamePhase, puzzleCategories: PuzzleCategory[], categoriesPlayersCompleted:  Record<number, number> ) => {
+//io.emit("game-state", gameState.playerNames, gameState.tilesById, gameState.playersCompleted, gameState.phase, gameState.playerLives, gameState.categoriesPlayersCompleted, gameState.timeRemaining, gameState.playerWinner, gameState.board, gameState.mode);
+//}, 2000);
+
+socket.on("game-state", (newPlayerIndex: number, playersLives: Record<number,number> , playerNames: String[], newPhase: GamePhase, puzzleCategories: PuzzleCategory[], categoriesPlayersCompleted:  Record<number, number>, newBoard: number, newMode: string, timeRemain:number ) => {
   if (newPlayerIndex != null) {
     playerIndex.value = newPlayerIndex
   }
@@ -172,6 +177,9 @@ socket.on("game-state", (newPlayerIndex: number, playersLives: Record<number,num
   playerLives.value = Object.values(playersLives);      // i think this is wrong
   categories.value = puzzleCategories
   playersCategoriesNum.value = Object.values(categoriesPlayersCompleted)
+  timeRemaining.value = timeRemain;
+  board.value = newBoard;
+  mode.value = newMode;
 
   // playCount.value = newPlayCount
 })
