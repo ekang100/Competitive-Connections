@@ -34,7 +34,7 @@
     <b-badge class="mr-2 mb-2">{{ phase }}</b-badge>
     <div class="board">
       <span
-        v-for="(tile, index) in shuffledTiles"
+        v-for="(tile) in shuffledTiles"
         :key="tile.id"
         @click="playTile(tile.id)"
         class="tile"
@@ -123,9 +123,9 @@
 </style>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, Ref } from 'vue'
+import { computed, ref, Ref } from 'vue'
 import { io } from "socket.io-client"
-import { Tile, formatTile, GamePhase, tileId, PuzzleCategory } from "../../../server/model"
+import { Tile, formatTile, GamePhase, tileId, PuzzleCategory } from "../data.ts"
 import { useRouter } from 'vue-router'; // Import useRouter for navigation
 const router = useRouter(); // Initialize the router instance
 
@@ -176,7 +176,7 @@ socket.on("game-state", (newPlayerIndex: number, playersLives: Record<number,num
   // playCount.value = newPlayCount
 })
 
-socket.on("game-state-specific", (playLives: Record<number,number>, newPhase:GamePhase, categoriesPlayersCompleted:  Record<number, number>, playerWin: string) =>{
+socket.on("game-state-specific", (playLives: Record<number,number>, newPhase:GamePhase, categoriesPlayersCompleted:  Record<number, number>) =>{
  if (newPhase === 'game-over'){
   router.push('/game-over');
  } 
@@ -189,7 +189,7 @@ socket.on("game-state-specific", (playLives: Record<number,number>, newPhase:Gam
 
 
 function doAction() {              
-  return new Promise<Tile[]>((resolve, reject) => {
+  return new Promise<Tile[]>((resolve) => {
     socket.emit("action", playerIndex.value)
     socket.once("updated-tiles", (updatedCards: Tile[]) => {
       resolve(updatedCards)

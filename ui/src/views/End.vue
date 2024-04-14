@@ -133,7 +133,7 @@
 </style>
   
   <script setup lang="ts">
-  import { onMounted, ref, Ref } from 'vue';
+  import { ref, Ref } from 'vue';
   import { io} from "socket.io-client";
   import { useRouter } from 'vue-router';
   
@@ -141,7 +141,7 @@
   const finishedPlayer = ref("");
   const phase = ref("");
 
-  import { Tile, formatTile, GamePhase, tileId, PuzzleCategory } from "../../../server/model"
+  import { GamePhase, PuzzleCategory } from "../data.ts"
 
   const playerIndex: Ref<number | "all"> = ref("all")
 
@@ -153,7 +153,7 @@ const playersCategoriesNum: Ref<number[]> = ref([]);
 const router = useRouter(); // Initialize the Vue router
 
   
-socket.on("game-state-specific", (playLives: Record<number,number>, newPhase:GamePhase, categoriesPlayersCompleted:  Record<number, number>, playerWin: string) =>{
+socket.on("game-state-specific", (playLives: Record<number,number>, newPhase:GamePhase, categoriesPlayersCompleted:  Record<number, number>) =>{
 //   console.log('please work', playLives)
   phase.value = newPhase
   playerLives.value = Object.values(playLives);     
