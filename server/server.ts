@@ -14,7 +14,9 @@ import passport from 'passport'
 import { gitlab } from "./secrets"
 
 // set up Mongo
-const mongoUrl = process.env.MONGO_URL || 'mongodb://127.0.0.1:27017'
+// const mongoUrl = process.env.MONGO_URL || 'mongodb://127.0.0.1:27017'
+const mongoUrl = process.env.MONGO_URL || 'mongodb://db'      //changed
+
 const client = new MongoClient(mongoUrl)
 let db: Db
 
@@ -47,7 +49,7 @@ const sessionMiddleware = session({
   cookie: { secure: false },
 
   store: MongoStore.create({
-    mongoUrl: 'mongodb://127.0.0.1:27017',
+    mongoUrl:  'mongodb://db',             //edited this
     ttl: 14 * 24 * 60 * 60 // 14 days
   })
 })
@@ -294,9 +296,9 @@ client.connect().then(() => {
       scope: 'openid profile email',
       nonce: generators.nonce(),
       // redirect_uri: 'http://10.198.2.194:8221/login-callback', //this is ellies server
-      redirect_uri: 'http://10.198.121.233:8221/login-callback', // this is eduroam: tonys server
+      // redirect_uri: 'http://10.198.121.233:8221/login-callback', // this is eduroam: tonys server
       // redirect_uri: 'http://10.197.59.172:8221/login-callback', // this is dukeblue: tonys server
-
+      redirect_uri:'localhost:31000/login-callback',
       state: generators.state(),
     }
   

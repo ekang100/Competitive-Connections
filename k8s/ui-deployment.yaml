@@ -15,7 +15,7 @@ spec:
         app: ui
     spec:
       containers:
-      - image: lecture19-smoothie-stand-ui
+      - image: competitive-connections-ui
         name: ui
         imagePullPolicy: Never
         ports:
