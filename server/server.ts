@@ -104,11 +104,12 @@ io.use(wrap(sessionMiddleware))
 const playerUserIds = ["anthony.cui", "ek199"]
 let currentConfig: Config = {
   board: 1,
+  randomizeBoard: false,
   maxLives: 3,
   timeRemaining: 100,
   mode: "easy",
 }
-let gameState = createEmptyGame(playerUserIds, currentConfig.board, currentConfig.maxLives, currentConfig.timeRemaining, currentConfig.mode)
+let gameState = createEmptyGame(playerUserIds, currentConfig.board, currentConfig.randomizeBoard, currentConfig.maxLives, currentConfig.timeRemaining, currentConfig.mode)
 // let timeSet: number = currentConfig.timeLimt
 
 
@@ -240,7 +241,7 @@ changedState
   )});
 
   client.on("new-game", () => {
-    gameState = createEmptyGame(gameState.playerNames, currentConfig.board, currentConfig.maxLives, currentConfig.timeRemaining, currentConfig.mode)
+    gameState = createEmptyGame(gameState.playerNames, currentConfig.board, currentConfig.randomizeBoard,  currentConfig.maxLives, currentConfig.timeRemaining, currentConfig.mode)
     gameState.phase = 'play'
     const updatedCards = Object.values(gameState.tilesById)
     emitUpdatedTilesForPlayers(updatedCards, true)
@@ -299,9 +300,10 @@ changedState
                 currentConfig.maxLives = newConfig.maxLives;
                 currentConfig.timeRemaining = newConfig.timeRemaining;
                 currentConfig.mode = newConfig.mode;
+                currentConfig.randomizeBoard = newConfig.randomizeBoard;
                 console.log("new config:", currentConfig)
                 client.emit("update-config-reply", true);
-                gameState = createEmptyGame(gameState.playerNames, currentConfig.board, currentConfig.maxLives, currentConfig.timeRemaining, currentConfig.mode);
+                gameState = createEmptyGame(gameState.playerNames, currentConfig.board, currentConfig.randomizeBoard, currentConfig.maxLives, currentConfig.timeRemaining, currentConfig.mode);
                 const updatedTiles = Object.values(gameState.tilesById);
                 emitUpdatedTilesForPlayers(updatedTiles, true);
                 io.to("all").emit("all-tiles", updatedTiles);

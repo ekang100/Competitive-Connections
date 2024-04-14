@@ -14,8 +14,9 @@
               <b-modal id="modal-1" title="Configure Game" @show="getConfig" hide-footer centered>
                 <b-overlay :show="busy">
                   <b-form @submit.stop.prevent="updateConfig(config)" class="my-3">
-                    <b-form-group label="Choose board:" label-for="board">
-                      <b-form-input type="number" id="board" v-model="board" min="0" max="1"></b-form-input>
+                    <b-form-group label="Choose board or randomize:" label-for="board-number">
+                      <b-form-input type="number" id="board-number" v-model="board" :disabled="randomizeBoard" :min="1" :max="5" placeholder="Enter board number"></b-form-input>
+                      <b-form-checkbox v-model="randomizeBoard" class="mt-2">Randomize Board</b-form-checkbox>
                     </b-form-group>
                     <b-form-group label="Lives:" label-for="lives">
                       <b-form-input type="number" id="lives" v-model="maxLives" min="1" max="10"></b-form-input>
@@ -65,9 +66,10 @@ const board = ref(1)
 const maxLives = ref(3)
 const timeRemaining = ref(100);
 const mode = ref("easy")
+const randomizeBoard = ref(false)
 
 // const config = ref({ board: board.value, maxLives: maxLives.value, timeLimit: timeRemaining.value, mode: mode.value })
-const config = computed(() => ({ board: board.value, maxLives: maxLives.value, timeRemaining: timeRemaining.value, mode: mode.value }))
+const config = computed(() => ({ board: board.value, randomizeBoard: randomizeBoard.value, maxLives: maxLives.value, timeRemaining: timeRemaining.value, mode: mode.value }))
 
 async function checkAdmin() {
     const user = await (await fetch("/api/user")).json()
@@ -95,7 +97,7 @@ async function startGame() {
         if (success) {
           resolve();
         } else {
-          reject(new Error("Update config failed"));
+          reject(new Error("Update redirect failed"));
 
         }
       })
@@ -104,20 +106,21 @@ async function startGame() {
 
 async function getConfig() {
   busy.value = true
-  const config = await new Promise<{ board : number, maxLives : number, timeRemaining : number, mode : string }>((resolve, reject) => {
+  const config = await new Promise<{ board : number, randomizeBoard: boolean, maxLives : number, timeRemaining : number, mode : string }>((resolve, reject) => {
     socket.emit("get-config")
-    socket.once("get-config-reply", (config: { board : number, maxLives : number, timeRemaining : number, mode : string }) => {
+    socket.once("get-config-reply", (config: { board : number, randomizeBoard: boolean, maxLives : number, timeRemaining : number, mode : string }) => {
       resolve(config)
     })
   })
   board.value = config.board
+  randomizeBoard.value = config.randomizeBoard
   maxLives.value = config.maxLives
   timeRemaining.value = config.timeRemaining
   mode.value = config.mode
   busy.value = false
 }
 
-async function updateConfig(config: { board : number, maxLives : number, timeRemaining : number, mode : string }) {
+async function updateConfig(config: { board : number, randomizeBoard:boolean, maxLives : number, timeRemaining : number, mode : string }) {
   busy.value = true
   await new Promise<void>((resolve, reject) => {
     // socket.emit("update-config", config, () => {

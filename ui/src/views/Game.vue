@@ -10,6 +10,7 @@
     <div v-else-if="phase !== 'game-over'" style="text-align: center; margin-top: 10px;">
       <h2>Time Remaining: {{ timeRemaining }} seconds</h2>
     </div>
+    <div id="messageContainer"></div>
 
     <div v-if = "playerIndex!='all' && playerLives[playerIndex]==0 && activePlayers.length>0">
         <h2> You ran out of lives! Wait for the game to finish since the following players are still cooking:</h2>
@@ -127,6 +128,7 @@ import { computed, onMounted, ref, Ref } from 'vue'
 import { io } from "socket.io-client"
 import { Tile, formatTile, GamePhase, tileId, PuzzleCategory } from "../../../server/model"
 import { useRouter } from 'vue-router'; // Import useRouter for navigation
+//import { almost } from "../../../server/model";
 const router = useRouter(); // Initialize the router instance
 
 
@@ -148,6 +150,8 @@ const phase = ref("")
 const timeRemaining: Ref<number> = ref(0);
 const board: Ref<number> = ref(0);
 const mode: Ref<string> = ref("")
+
+
 
 // const myTurn = computed(() => currentTurnPlayerIndex.value === playerIndex.value && phase.value !== "game-over")
 socket.on("game-time", (remainingTime: number) => {
@@ -196,7 +200,7 @@ socket.on("game-state-specific", (playLives: Record<number,number>, newPhase:Gam
 })
 
 
-function doAction() {              
+function doAction() {           
   return new Promise<Tile[]>((resolve, reject) => {
     socket.emit("action", playerIndex.value)
     socket.once("updated-tiles", (updatedCards: Tile[]) => {
@@ -230,7 +234,7 @@ async function playTile(TileId: tileId) {
     }
 
     const selectedTilesCount = tiles.value.filter(tile => tile.selected).length;
-    if(tileToSelect.selected && !tileToSelect.matched){
+    if(tileToSelect.selected && tileToSelect.matched != 1){
       tileToSelect.selected=false;
       socket.emit("selected-tile",tileToSelect)
     }
@@ -238,14 +242,13 @@ async function playTile(TileId: tileId) {
       alert("You can only select up to 4 tiles.");
       return;
     }
-    else if (!tileToSelect.matched) {
+    else if (tileToSelect.matched != 1) {
       if (tileToSelect) {
         tileToSelect.selected = true;
         socket.emit("selected-tile",tileToSelect)
       }
   
     }
-
 
     // const updatedCards = await doAction()
     // if (updatedCards.length === 0) {
@@ -274,7 +277,8 @@ const canSubmit = computed(() => {
 function submitAction() {
   if (canSubmit.value) {
     doAction();
-  } else {
+  }
+  else {
     alert("Please select exactly 4 tiles.");
   }
 }
@@ -319,7 +323,7 @@ const getCategoryDescription = (categoryNum: number) => {
 }
 
 const isCategoryMatched = (categoryNum: number) => {
-  return tiles.value.some(tile => tile.categoryNum === categoryNum && tile.matched);
+  return tiles.value.some(tile => tile.categoryNum === categoryNum && tile.matched === 1);
 }
 
 
@@ -353,7 +357,7 @@ const getTileStyle = (tile: Tile) => {
 
   if (tile.selected) {
     backgroundColor = '#f0f0f0';
-  } else if (tile.matched) {
+  } else if (tile.matched === 1) {
     switch (tile.categoryNum) {
       case 1:
         backgroundColor = '#fbd400'; // Category ID 1
