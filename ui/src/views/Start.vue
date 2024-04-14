@@ -1,50 +1,57 @@
 <template>
-    <div class="home">
-        <h1>Competitive Connections</h1>
-        <div v-if="isAdmin">
-            <h2>Admin Controls</h2>
-            <!-- Admin controls for starting a new game and configuring settings -->
-            <button @click="startGame">Start New Game</button>
-            <div>
-                <label>Game Settings:</label>
-                <!-- Input fields for configuring game settings -->
-                <!-- Example: -->
-                <!-- <input type="text" v-model="gameSettings.name" placeholder="Game Name"> -->
-                <!-- <input type="number" v-model="gameSettings.maxPlayers" placeholder="Max Players"> -->
-                <b-button class="mr-2 mb-2" size="sm" v-b-modal.modal-1>Configure Game</b-button>
-                <b-modal id="modal-1" title="Configure Game" @show="getConfig" ok-only="true" ok-title="Close" data-backdrop="static">
-                <b-overlay :show="busy" rounded="sm">
-                    <b-form @submit.stop.prevent="updateConfig(config)">
+  <div class="home">
+    <b-container>
+      <b-row class="justify-content-md-center">
+        <b-col cols="12" md="8">
+          <h1 class="text-center mt-4 mb-4">Competitive Connections</h1>
+          <b-card no-body class="mb-3">
+            <b-card-body v-if="isAdmin">
+              <h2 class="text-center mb-3">Admin Controls</h2>
+              <div class="d-flex flex-column align-items-center">
+                <b-button @click="startGame" variant="success" class="mb-3">Start New Game</b-button>
+                <b-button variant="info" v-b-modal.modal-1>Configure Game</b-button>
+              </div>
+              <b-modal id="modal-1" title="Configure Game" @show="getConfig" hide-footer centered>
+                <b-overlay :show="busy">
+                  <b-form @submit.stop.prevent="updateConfig(config)" class="my-3">
                     <b-form-group label="Choose board:" label-for="board">
-                        <b-form-input number id="decks" type="number" v-model="board" :min="0" :max="1"></b-form-input>
+                      <b-form-input type="number" id="board" v-model="board" min="0" max="1"></b-form-input>
                     </b-form-group>
-
                     <b-form-group label="Lives:" label-for="lives">
-                        <b-form-input number id="rank" type="number" v-model="maxLives" :min="1" :max="10"></b-form-input>
+                      <b-form-input type="number" id="lives" v-model="maxLives" min="1" max="10"></b-form-input>
                     </b-form-group>
-
                     <b-form-group label="Time Limit:" label-for="time">
-                        <b-form-input number id="rank" type="number" v-model="timeRemaining" :min="1" :max="600"></b-form-input>
+                      <b-form-input type="number" id="time" v-model="timeRemaining" min="1" max="600"></b-form-input>
                     </b-form-group>
-
                     <b-form-group label="Mode:" label-for="mode">
-                        <b-form-select string id="mode" type="string" v-model="mode" :options="['easy', 'hard']"></b-form-select>
+                      <b-form-select id="mode" v-model="mode" :options="['easy', 'hard']"></b-form-select>
                     </b-form-group>
-
-                    <b-button type="submit" variant="primary">Save</b-button>
-                    </b-form>
+                    <b-button type="submit" variant="primary" block>Save</b-button>
+                  </b-form>
                 </b-overlay>
-                </b-modal>
-            </div>
-        </div>
-        <div v-else-if="isLoggedIn">
-            <h2>Waiting...</h2>
-        </div>
-        <div v-else>
-            <h2>You need to log in to play</h2>
-        </div>
-    </div>
+              </b-modal>
+            </b-card-body>
+            <b-card-body v-else-if="isLoggedIn">
+              <h2 class="text-center">Waiting for game to start...</h2>
+            </b-card-body>
+            <b-card-body v-else>
+              <h2 class="text-center">You need to log in to play</h2>
+            </b-card-body>
+          </b-card>
+        </b-col>
+      </b-row>
+    </b-container>
+  </div>
 </template>
+
+<style scoped>
+.home {
+  background-color: #f8f9fa;
+  padding: 20px;
+}
+</style>
+
+
 
 <script setup lang="ts">
 import { io } from "socket.io-client"
@@ -131,7 +138,3 @@ async function updateConfig(config: { board : number, maxLives : number, timeRem
 
 
 </script>
-
-<style scoped>
-/* Add your custom styles here */
-</style>
