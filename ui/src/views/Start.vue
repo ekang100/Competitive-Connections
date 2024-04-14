@@ -1,54 +1,62 @@
 <template>
-    <div class="home">
-        <h1>Competitive Connections</h1>
-        <div v-if="isAdmin">
-            <h2>Admin Controls</h2>
-            <!-- Admin controls for starting a new game and configuring settings -->
-            <button @click="startGame">Start New Game</button>
-            <div>
-                <label>Game Settings:</label>
-                <!-- Input fields for configuring game settings -->
-                <!-- Example: -->
-                <!-- <input type="text" v-model="gameSettings.name" placeholder="Game Name"> -->
-                <!-- <input type="number" v-model="gameSettings.maxPlayers" placeholder="Max Players"> -->
-                <b-button class="mr-2 mb-2" size="sm" v-b-modal.modal-1>Configure Game</b-button>
-                <b-modal id="modal-1" title="Configure Game" @show="getConfig" ok-only="true" ok-title="Close" data-backdrop="static">
-                <b-overlay :show="busy" rounded="sm">
-                    <b-form @submit.stop.prevent="updateConfig(config)">
-                    <b-form-group label="Choose board:" label-for="board">
-                        <b-form-input number id="decks" type="number" v-model="board" :min="1" :max="2"></b-form-input>
+  <div class="home">
+    <b-container>
+      <b-row class="justify-content-md-center">
+        <b-col cols="12" md="8">
+          <h1 class="text-center mt-4 mb-4">Competitive Connections</h1>
+          <b-card no-body class="mb-3">
+            <b-card-body v-if="isAdmin">
+              <h2 class="text-center mb-3">Admin Controls</h2>
+              <div class="d-flex flex-column align-items-center">
+                <b-button @click="startGame" variant="success" class="mb-3">Start New Game</b-button>
+                <b-button variant="info" v-b-modal.modal-1>Configure Game</b-button>
+              </div>
+              <b-modal id="modal-1" title="Configure Game" @show="getConfig" hide-footer centered>
+                <b-overlay :show="busy">
+                  <b-form @submit.stop.prevent="updateConfig(config)" class="my-3">
+                    <b-form-group label="Choose board or randomize:" label-for="board-number">
+                      <b-form-input type="number" id="board-number" v-model="board" :disabled="randomizeBoard" :min="1" :max="5" placeholder="Enter board number"></b-form-input>
+                      <b-form-checkbox v-model="randomizeBoard" class="mt-2">Randomize Board</b-form-checkbox>
                     </b-form-group>
-
                     <b-form-group label="Lives:" label-for="lives">
-                        <b-form-input number id="rank" type="number" v-model="maxLives" :min="1" :max="10"></b-form-input>
+                      <b-form-input type="number" id="lives" v-model="maxLives" min="1" max="10"></b-form-input>
                     </b-form-group>
-
                     <b-form-group label="Time Limit:" label-for="time">
-                        <b-form-input number id="rank" type="number" v-model="timeLimit" :min="1" :max="600"></b-form-input>
+                      <b-form-input type="number" id="time" v-model="timeRemaining" min="1" max="600"></b-form-input>
                     </b-form-group>
-
                     <b-form-group label="Mode:" label-for="mode">
-                        <b-form-select string id="mode" type="string" v-model="mode" :options="['easy', 'hard']"></b-form-select>
+                      <b-form-select id="mode" v-model="mode" :options="['easy', 'hard']"></b-form-select>
                     </b-form-group>
-
-                    <b-button type="submit" variant="primary">Save</b-button>
-                    </b-form>
+                    <b-button type="submit" variant="primary" block>Save</b-button>
+                  </b-form>
                 </b-overlay>
-                </b-modal>
-            </div>
-        </div>
-        <div v-else-if="isLoggedIn">
-            <h2>Waiting...</h2>
-        </div>
-        <div v-else>
-            <h2>You need to log in to play</h2>
-        </div>
-    </div>
+              </b-modal>
+            </b-card-body>
+            <b-card-body v-else-if="isLoggedIn">
+              <h2 class="text-center">Waiting for game to start...</h2>
+            </b-card-body>
+            <b-card-body v-else>
+              <h2 class="text-center">You need to log in to play</h2>
+            </b-card-body>
+          </b-card>
+        </b-col>
+      </b-row>
+    </b-container>
+  </div>
 </template>
+
+<style scoped>
+.home {
+  background-color: #f8f9fa;
+  padding: 20px;
+}
+</style>
+
+
 
 <script setup lang="ts">
 import { io } from "socket.io-client"
-import { ref } from "vue"
+import { Ref, computed, ref } from "vue"
 const socket = io()
 const busy = ref(false)
 const isAdmin = ref(false)
@@ -56,10 +64,12 @@ const isLoggedIn = ref(false)
 
 const board = ref(1)
 const maxLives = ref(3)
-const timeLimit = ref(300)
+const timeRemaining = ref(100);
 const mode = ref("easy")
+const randomizeBoard = ref(false)
 
-const config = ref({ board: board.value, maxLives: maxLives.value, timeLimit: timeLimit.value, mode: mode.value })
+// const config = ref({ board: board.value, maxLives: maxLives.value, timeLimit: timeRemaining.value, mode: mode.value })
+const config = computed(() => ({ board: board.value, randomizeBoard: randomizeBoard.value, maxLives: maxLives.value, timeRemaining: timeRemaining.value, mode: mode.value }))
 
 async function checkAdmin() {
     const user = await (await fetch("/api/user")).json()
@@ -77,6 +87,7 @@ socket.on("connect", checkLoggedIn)
 
 socket.on("redirect", (url: string) => {
     window.location.href = url
+    socket.emit("new-game")
 })
 
 async function startGame() {
@@ -86,37 +97,31 @@ async function startGame() {
         if (success) {
           resolve();
         } else {
-          reject(new Error("Update config failed"));
+          reject(new Error("Update redirect failed"));
 
         }
       })
     })
 }
 
-// socket.on("redirect", (url: string) => {
-//     window.location.href = url
-// })
-
 async function getConfig() {
-  //busy.value = true
-  const config = await new Promise<{ board : number, maxLives : number, timeLimit : number, mode : string }>((resolve, reject) => {
-    // socket.emit("get-config", (config: { numberOfDecks: number, rankLimit: number }) => {
-    //   resolve(config)
-    // })
+  busy.value = true
+  const config = await new Promise<{ board : number, randomizeBoard: boolean, maxLives : number, timeRemaining : number, mode : string }>((resolve, reject) => {
     socket.emit("get-config")
-    socket.once("get-config-reply", (config: { board : number, maxLives : number, timeLimit : number, mode : string }) => {
+    socket.once("get-config-reply", (config: { board : number, randomizeBoard: boolean, maxLives : number, timeRemaining : number, mode : string }) => {
       resolve(config)
     })
   })
   board.value = config.board
+  randomizeBoard.value = config.randomizeBoard
   maxLives.value = config.maxLives
-  timeLimit.value = config.timeLimit
+  timeRemaining.value = config.timeRemaining
   mode.value = config.mode
-  //busy.value = false
+  busy.value = false
 }
 
-async function updateConfig(config: { board : number, maxLives : number, timeLimit : number, mode : string }) {
-  //busy.value = true
+async function updateConfig(config: { board : number, randomizeBoard:boolean, maxLives : number, timeRemaining : number, mode : string }) {
+  busy.value = true
   await new Promise<void>((resolve, reject) => {
     // socket.emit("update-config", config, () => {
     //   resolve()
@@ -131,12 +136,8 @@ async function updateConfig(config: { board : number, maxLives : number, timeLim
         }
       })
   })
-  //busy.value = false
+  busy.value = false
 }
 
 
 </script>
-
-<style scoped>
-/* Add your custom styles here */
-</style>
