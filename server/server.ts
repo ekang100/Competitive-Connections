@@ -298,7 +298,7 @@ client.connect().then(() => {
       // redirect_uri: 'http://10.198.2.194:8221/login-callback', //this is ellies server
       // redirect_uri: 'http://10.198.121.233:8221/login-callback', // this is eduroam: tonys server
       // redirect_uri: 'http://10.197.59.172:8221/login-callback', // this is dukeblue: tonys server
-      redirect_uri:'localhost:31000/login-callback',
+      redirect_uri:'http://127.0.0.1:31000/login-callback',
       state: generators.state(),
     }
   

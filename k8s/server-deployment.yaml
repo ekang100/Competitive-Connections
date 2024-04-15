@@ -19,7 +19,7 @@ spec:
         name: server
         imagePullPolicy: Never
         ports:
-        - containerPort: 8191
+        - containerPort: 8228
           name: server
         env:
         - name: MONGO_URL
