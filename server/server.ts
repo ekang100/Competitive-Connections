@@ -278,6 +278,12 @@ app.post(
 )
 
 app.get("/api/user", (req, res) => {
+  if(req.user == undefined){
+    console.log('user is undefined')
+  }
+  else{
+    console.log('no user is found')
+  }
   res.json(req.user || {})
 })
 
