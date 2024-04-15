@@ -9,7 +9,7 @@ spec:
   ports:
   - name: "server-service"
     port: 5001
-    targetPort: 8191
+    targetPort: 8228
     nodePort: 31001
   selector:
     app: server
