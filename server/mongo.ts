@@ -62,7 +62,8 @@ import { MongoClient } from 'mongodb'
 import { Player } from './model'
 
 // Connection URL
-const url = 'mongodb://127.0.0.1:27017'
+// const url = 'mongodb://127.0.0.1:27017' //changed this
+const url = process.env.MONGO_URL || 'mongodb://db'
 const client = new MongoClient(url)
 
 

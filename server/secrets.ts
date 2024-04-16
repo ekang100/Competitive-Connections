@@ -1,4 +1,4 @@
 export const gitlab = {
-    client_id: "38335c6487f2df66c35080fdd10b5a0666be09ba76b682319a5eaa677cbccbb5",    // TODO: fill in
-    client_secret: "gloas-440979a4eef12df2394259e965e6a6795b7d404bb216b6c6c00102c9b646cc65" // TODO: fill in
+    client_id: "576fa618f1b5695fee8b15b2db68bf4a397a8777c7561a7b0a4498699af9e597",    // TODO: fill in
+    client_secret: "gloas-4f72f04a976f2ee7aa28de339041a5a62ef949e4819b68d9d68e5f1b8cc16a40" // TODO: fill in
   }

@@ -35,7 +35,7 @@
     <b-badge class="mr-2 mb-2">{{ phase }}</b-badge>
     <div class="board">
       <span
-        v-for="(tile, index) in shuffledTiles"
+        v-for="(tile) in shuffledTiles"
         :key="tile.id"
         @click="playTile(tile.id)"
         class="tile"
@@ -124,9 +124,9 @@
 </style>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, Ref } from 'vue'
+import { computed, ref, Ref } from 'vue'
 import { io } from "socket.io-client"
-import { Tile, formatTile, GamePhase, tileId, PuzzleCategory } from "../../../server/model"
+import { Tile, formatTile, GamePhase, tileId, PuzzleCategory } from "../data.ts"
 import { useRouter } from 'vue-router'; // Import useRouter for navigation
 //import { almost } from "../../../server/model";
 const router = useRouter(); // Initialize the router instance
@@ -188,7 +188,7 @@ socket.on("game-state", (newPlayerIndex: number, playersLives: Record<number,num
   // playCount.value = newPlayCount
 })
 
-socket.on("game-state-specific", (playLives: Record<number,number>, newPhase:GamePhase, categoriesPlayersCompleted:  Record<number, number>, playerWin: string) =>{
+socket.on("game-state-specific", (playLives: Record<number,number>, newPhase:GamePhase, categoriesPlayersCompleted:  Record<number, number>) =>{
  if (newPhase === 'game-over'){
   router.push('/game-over');
  } 

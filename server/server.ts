@@ -15,7 +15,9 @@ import { gitlab } from "./secrets"
 import { emit } from "process"
 
 // set up Mongo
-const mongoUrl = process.env.MONGO_URL || 'mongodb://127.0.0.1:27017'
+// const mongoUrl = process.env.MONGO_URL || 'mongodb://127.0.0.1:27017'
+const mongoUrl = process.env.MONGO_URL || 'mongodb://db'      //changed
+
 const client = new MongoClient(mongoUrl)
 let db: Db
 
@@ -48,7 +50,7 @@ const sessionMiddleware = session({
   cookie: { secure: false },
 
   store: MongoStore.create({
-    mongoUrl: 'mongodb://127.0.0.1:27017',
+    mongoUrl:  'mongodb://db',             //edited this
     ttl: 14 * 24 * 60 * 60 // 14 days
   })
 })
@@ -132,9 +134,16 @@ function emitUpdatedTilesForPlayers(tiles: Tile[], newGame = false) {
 
 
 io.on('connection', client => {
+  console.log('is this working')
   const user = (client.request as any).session?.passport?.user
   logger.info("new socket connection for user " + JSON.stringify(user))
+  // if(user === undefined){
+  //   console.log('testing')
+  // }
+
+
   if (!user) {
+    console.log('xyz')
     client.disconnect()
     return
   }
@@ -334,6 +343,12 @@ app.post(
 )
 
 app.get("/api/user", (req, res) => {
+  if(req.user == undefined){
+    console.log('user is undefined')
+  }
+  else{
+    console.log('no user is found')
+  }
   res.json(req.user || {})
 })
 
@@ -362,10 +377,10 @@ client.connect().then(() => {
     const params = {
       scope: 'openid profile email',
       nonce: generators.nonce(),
-      redirect_uri: 'http://10.198.2.194:8221/login-callback', //this is ellies server
+      // redirect_uri: 'http://10.198.2.194:8221/login-callback', //this is ellies server
       // redirect_uri: 'http://10.198.121.233:8221/login-callback', // this is eduroam: tonys server
       // redirect_uri: 'http://10.197.59.172:8221/login-callback', // this is dukeblue: tonys server
-
+      redirect_uri:'http://localhost:31000/login-callback',
       state: generators.state(),
     }
   

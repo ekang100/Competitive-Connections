@@ -1,7 +1,6 @@
 ///////////// --> data model for connections
-import { config } from "process";
-import * as puzzlesData from "../public/puzzles.json";
-import { get } from "http";
+
+import * as puzzlesData from "./puzzles.json";
 
 export interface Player{
   id: "gitlabUserId",

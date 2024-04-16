@@ -36,7 +36,7 @@ const router = createRouter({
 })
 
 createApp(App)
-	.use(BootstrapVue)
-	.use(BootstrapVueIcons)
+	.use(BootstrapVue as any)
+	.use(BootstrapVueIcons as any)
 	.use(router)
 	.mount('#app')
