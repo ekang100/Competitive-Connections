@@ -1,4 +1,5 @@
 ///////////// --> data model for connections
+
 import * as puzzlesData from "./puzzles.json";
 
 export interface Player{
@@ -7,6 +8,14 @@ export interface Player{
   email: "userEmail",
   gamesWon: number,
   groups: ["competitive-connections-admin"]
+}
+
+export interface Config {
+  board: number | null,
+  randomizeBoard: boolean,
+  maxLives: number,
+  timeRemaining: number,
+  mode: "easy" | "hard"
 }
 
 
@@ -33,21 +42,48 @@ export interface Tile{
   clue: string
   categoryNum: number //this gonna be the category that they are attributed to
   selected: boolean | null
-  matched: boolean | null
+  matched: number | null
   playerIndex: number | null
 }
 
-
-export function matchingPuzzle(selectedTiles: Tile[]): boolean {
+export function matchingPuzzleHard(selectedTiles: Tile[]): number {
   // Get the category number of the first selected tile
   const firstCategoryNum = selectedTiles[0].categoryNum;
   // Check if all selected tiles have the same category number
   for (let i = 1; i < selectedTiles.length; i++) {
     if (selectedTiles[i].categoryNum !== firstCategoryNum) {
-      return false; // Return false if any tile has a different category number
+      return 0; // Return false if any tile has a different category number
     }
   }
-  return true; // If all tiles have the same category number, return true
+  return 1; // If all tiles have the same category number, return true
+}
+
+
+export function matchingPuzzle(selectedTiles: Tile[]): number {
+  // Get the category number of the first selected tile
+  const firstCategoryNum = selectedTiles[0].categoryNum;
+  let count = 1;
+  // Check if all selected tiles have the same category number
+  for (let i = 1; i < selectedTiles.length; i++) {
+    // if (selectedTiles[i].categoryNum !== firstCategoryNum) {
+    //   return 0; // Return false if any tile has a different category number
+    // }
+    // else if (selectedTiles[i].matched == 1){
+    //   count++;
+    // }
+    if (selectedTiles[i].categoryNum == firstCategoryNum){
+      count++;
+    }
+  }
+  if (count == 4) {
+    return 1; // If all tiles have the same category number, return true
+  }
+  else if (count == 3){
+    return 2; // If you are one away
+  }
+  else {
+    return 0;
+  }
 }
 
 
@@ -64,7 +100,10 @@ export interface GameState {
   categoriesPlayersCompleted: Record<number, number>; //tracks number of categories a player completed
   timeRemaining: number; // Time remaining in seconds
   playerWinner: string;
+  board: number;
+  mode: string;
 }
+
 
 /**DOES THIS HAVE TO ONLY EXTRACT UNSELECTED TILES?
  * 
@@ -83,7 +122,7 @@ export function computerPlayerTilesLeft({ playerNames, tilesById }: GameState): 
   const counts = playerNames.map(_ => 0);
   // Loop through all tiles and count active and unmatched tiles for each player
   Object.values(tilesById).forEach(tile => {
-    if (tile.playerIndex !== null && !tile.matched) {
+    if (tile.playerIndex !== null && tile.matched != 1) {
       counts[tile.playerIndex]++;
     }
   });
@@ -128,13 +167,35 @@ function printPuzzle(puzzle: Puzzle): void {
 
 // Modified createEmptyGame function
 
-export function createEmptyGame(playerNames: string[]): GameState {
+// export interface GameState {
+//   playerNames: string[];
+//   tilesById: Record<tileId, Tile>;
+//   playersCompleted: string[];
+//   phase: GamePhase;
+//   playerLives: Record<number, number>; // Track player lives, index to index
+//   categoriesPlayersCompleted: Record<number, number>; //tracks number of categories a player completed
+//   timeRemaining: number; // Time remaining in seconds
+//   playerWinner: string;
+//   board: number;
+//   mode: string;
+// }
+
+export function createEmptyGame(playerNames: string[], board: number, randomizeBoard:boolean, maxLives: number, timeSet:number, mode:string ): GameState {
   // Get a random puzzle
-  const randomPuzzle = getRandomPuzzle();
-  currentPuzzle = randomPuzzle
+  // const randomPuzzle = getRandomPuzzle();
+  // currentPuzzle = randomPuzzle
+  if (randomizeBoard){
+    const randomPuzzle = getRandomPuzzle();
+    // board = null
+    currentPuzzle = randomPuzzle
+  }
+  else{
+    const configPuzzle = allPuzzles[board]
+    currentPuzzle = configPuzzle
+  }
   
   // If no puzzle is found, return null
-  if (!randomPuzzle) {
+  if (!currentPuzzle) {
     console.log('Puzzle not found!');
     return null;
   }
@@ -145,7 +206,7 @@ export function createEmptyGame(playerNames: string[]): GameState {
   const categoriesPlayersCompleted: Record<number, number> = {};
   // Initialize tiles based on puzzle categories and clues
   playerNames.forEach((_, playerIndex) => { // Use playerIndex instead of name
-    initialPlayerLives[playerIndex] = 4; // Set initial lives to 4 for each player using playerIndex
+    initialPlayerLives[playerIndex] = maxLives; // Set initial lives to 4 for each player using playerIndex
     categoriesPlayersCompleted[playerIndex] = 0;
   });
   const tiles: Tile[] = [];
@@ -153,14 +214,14 @@ export function createEmptyGame(playerNames: string[]): GameState {
   // Iterate through each player
   playerNames.forEach((name, playerIndex) => {
     // Iterate through each category
-    randomPuzzle.categories.forEach((category) => {
+    currentPuzzle.categories.forEach((category) => {
       // Iterate through each word in the category
       category.words.forEach((word, wordIndex) => {
         const tile: Tile = {
           id: `tile_${category.id}_${wordIndex}_${name}`, // Generate unique tile ID including player name
           categoryNum: category.id,
           selected: false,
-          matched: false,
+          matched: 0,
           playerIndex: playerIndex,
           clue: category.words[wordIndex], // Assign clue to the tile
         };
@@ -178,12 +239,14 @@ export function createEmptyGame(playerNames: string[]): GameState {
     phase: "pre-game",
     playerLives: initialPlayerLives,
     categoriesPlayersCompleted,
-    timeRemaining: 60,                 //this is hardcoded rn
+    timeRemaining: timeSet,                 //this is hardcoded rn
     playerWinner: "",
+    board: board,
+    mode: mode,
   };
 
   // Print puzzle details
-  printPuzzle(randomPuzzle);
+  printPuzzle(currentPuzzle);
 
   // Return the game state
   return gameState;
@@ -199,50 +262,90 @@ export function formatTile(tile: Tile): string {
   return tile.clue
 }
 
+//export let almost = false;
 
 export function doAction(state: GameState, playerIndex: number): Tile[] {         //need to have a check for matched tiles
   if (state.phase === "game-over" || state.playerLives[playerIndex]==0) {
     // Game is already over
     return;
   }
-
+//almost = false;
 console.log('checkpoint2')  
   // Assuming the player's action is to submit tiles
   const submittedTiles: Tile[] = [];
 
   // Collect submitted tiles
   Object.values(state.tilesById).forEach(tile => {
-    if (tile.selected && !tile.matched && tile.playerIndex === playerIndex) {
+    if (tile.selected && tile.matched != 1 && tile.playerIndex === playerIndex) {
       submittedTiles.push(tile);
     }
   });
 
   console.log('these are the tiles you submitted', submittedTiles)
   // Check if submitted tiles match the puzzle
-  if (matchingPuzzle(submittedTiles)) {
-    // Mark submitted tiles as matched and unselect them
-    submittedTiles.forEach(tile => {
-      tile.matched = true;
-      tile.selected = false;
-    });
-                                                    //add else statement here to decrement lives
-
-    // Decrease the number of categories remaining for the player
-    state.categoriesPlayersCompleted[playerIndex]++;
-    console.log('number of categories left:', state.categoriesPlayersCompleted[playerIndex])
+  if (state.mode == "easy") {
+    if (matchingPuzzle(submittedTiles) == 1) {
+      // Mark submitted tiles as matched and unselect them
+      submittedTiles.forEach(tile => {
+        tile.matched = 1;
+        tile.selected = false;
+      });
+                                                      //add else statement here to decrement lives
   
-    // Check if the player has matched all categories
-    const allCategoriesMatched = Object.values(state.categoriesPlayersCompleted).every(count => count === state.playerNames.length);
-
-    // If all categories matched for all players, end the game
-    if (state.categoriesPlayersCompleted[playerIndex] == 4) {
-      console.log('game is over!!!!!')
-      state.phase = "game-over";
-      state.playerWinner = state.playerNames[playerIndex]
+      // Decrease the number of categories remaining for the player
+      state.categoriesPlayersCompleted[playerIndex]++;
+      console.log('number of categories left:', state.categoriesPlayersCompleted[playerIndex])
+    
+      // Check if the player has matched all categories
+      const allCategoriesMatched = Object.values(state.categoriesPlayersCompleted).every(count => count === state.playerNames.length);
+  
+      // If all categories matched for all players, end the game
+      if (state.categoriesPlayersCompleted[playerIndex] == 4) {
+        console.log('game is over!!!!!')
+        state.phase = "game-over";
+        state.playerWinner = state.playerNames[playerIndex]
+      }
     }
+    else if (state.playerLives[playerIndex]>0){
+      if (matchingPuzzle(submittedTiles) === 2){
+        // show message "One away" on screen
+        console.log('you are one away')
+        //almost = true;
+        //console.log(almost)
+      }
+      state.playerLives[playerIndex]--;
+    }   
+
+    
   }
-  else if (state.playerLives[playerIndex]>0){
-    state.playerLives[playerIndex]--;         
+  else if (state.mode == "hard") {
+    if (matchingPuzzleHard(submittedTiles) == 1) {
+      // Mark submitted tiles as matched and unselect them
+      submittedTiles.forEach(tile => {
+        tile.matched = 1;
+        tile.selected = false;
+      });
+                                                      //add else statement here to decrement lives
+  
+      // Decrease the number of categories remaining for the player
+      state.categoriesPlayersCompleted[playerIndex]++;
+      console.log('number of categories left:', state.categoriesPlayersCompleted[playerIndex])
+    
+      // Check if the player has matched all categories
+      const allCategoriesMatched = Object.values(state.categoriesPlayersCompleted).every(count => count === state.playerNames.length);
+  
+      // If all categories matched for all players, end the game
+      if (state.categoriesPlayersCompleted[playerIndex] == 4) {
+        console.log('game is over!!!!!')
+        state.phase = "game-over";
+        state.playerWinner = state.playerNames[playerIndex]
+      }
+    }
+    else if (state.playerLives[playerIndex]>0){
+      state.playerLives[playerIndex]--;
+    }   
+
+    
   }
 
   // Check for winner after each action

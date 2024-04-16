@@ -1,7 +1,7 @@
 import { createServer } from "http"
 import { Server } from "socket.io"
 import {createEmptyGame, doAction, filterTilesForPlayerPerspective, getCurrentPuzzle } from "./model"
-import { Puzzle, PuzzleCategory, tileId, allPuzzles, Tile, startGameTimer } from "./model"
+import { Puzzle, PuzzleCategory, tileId, allPuzzles, Tile, Config, startGameTimer } from "./model"
 import express, { NextFunction, Request, Response } from 'express'
 import bodyParser from 'body-parser'
 import pino from 'pino'
@@ -12,6 +12,7 @@ import MongoStore from 'connect-mongo'
 import { Issuer, Strategy, generators } from 'openid-client'
 import passport from 'passport'
 import { gitlab } from "./secrets"
+import { emit } from "process"
 
 // set up Mongo
 // const mongoUrl = process.env.MONGO_URL || 'mongodb://127.0.0.1:27017'
@@ -103,8 +104,16 @@ io.use(wrap(sessionMiddleware))
 
 // hard-coded game configuration
 const playerUserIds = ["anthony.cui", "ek199"]
-let gameState = createEmptyGame(playerUserIds)
-let timeSet: number = 60
+let currentConfig: Config = {
+  board: 1,
+  randomizeBoard: false,
+  maxLives: 3,
+  timeRemaining: 100,
+  mode: "easy",
+}
+let gameState = createEmptyGame(playerUserIds, currentConfig.board, currentConfig.randomizeBoard, currentConfig.maxLives, currentConfig.timeRemaining, currentConfig.mode)
+// let timeSet: number = currentConfig.timeLimt
+
 
 function emitUpdatedTilesForPlayers(tiles: Tile[], newGame = false) {   
   gameState.playerNames.forEach((_, i) => {      
@@ -139,6 +148,8 @@ io.on('connection', client => {
     return
   }
 
+  
+// io.emit("game-state", playerIndex, gameState.playerLives, gameState.playerNames, gameState.phase, getCurrentPuzzle().categories, gameState.categoriesPlayersCompleted, gameState.timeRemaining, gameState.board, gameState.mode, gameState.timeRemaining);
   function emitGameState() {      
     client.emit(
       "game-state", 
@@ -148,7 +159,10 @@ io.on('connection', client => {
         // gameState.currentTurnPlayerIndex,
       gameState.phase,
       getCurrentPuzzle().categories,
-      gameState.categoriesPlayersCompleted
+      gameState.categoriesPlayersCompleted,
+      currentConfig.board,
+      currentConfig.mode, 
+      currentConfig.timeRemaining,
       // gameState.playCount,
       //can add here the list of players who won already since its in game state
     )
@@ -236,11 +250,11 @@ changedState
   )});
 
   client.on("new-game", () => {
-    gameState = createEmptyGame(gameState.playerNames)
+    gameState = createEmptyGame(gameState.playerNames, currentConfig.board, currentConfig.randomizeBoard,  currentConfig.maxLives, currentConfig.timeRemaining, currentConfig.mode)
     gameState.phase = 'play'
     const updatedCards = Object.values(gameState.tilesById)
     emitUpdatedTilesForPlayers(updatedCards, true)
-    startGameTimer(gameState, timeSet)
+    startGameTimer(gameState, currentConfig.timeRemaining)
     io.to("all").emit(
       "all-tiles", 
       updatedCards,
@@ -250,7 +264,6 @@ changedState
        gameState.playerLives,
        gameState.phase,
        gameState.categoriesPlayersCompleted
-
     )  
     io.emit('game-time', gameState.timeRemaining);
     
@@ -265,9 +278,54 @@ changedState
         )
       }
   }, 1000);
-  
-  
-  
+
+  })
+
+  client.on("get-config", () => {
+    client.emit("get-config-reply", currentConfig)
+  })
+
+  // playerNames: string[];
+  // tilesById: Record<tileId, Tile>;
+  // playersCompleted: string[];
+  // phase: GamePhase;
+  // playerLives: Record<number, number>; // Track player lives, index to index
+  // categoriesPlayersCompleted: Record<number, number>; //tracks number of categories a player completed
+  // timeRemaining: number; // Time remaining in seconds
+  // playerWinner: string;
+
+  client.on("update-config", (newConfig: Partial<Config>) => {
+    if (typeof newConfig.board === 'number' //&&
+            // typeof newConfig.maxLives === 'number' &&
+            // Object.keys(newConfig).length === 2 &&
+            // newConfig.board >= 1 &&
+            // newConfig.board <= 2 && // hard coded max for now
+            // newConfig.maxLives <= 10
+          )
+          {
+            setTimeout(() => {
+                //currentConfig = { ...currentConfig, ...newConfig };
+                currentConfig.board = newConfig.board;
+                currentConfig.maxLives = newConfig.maxLives;
+                currentConfig.timeRemaining = newConfig.timeRemaining;
+                currentConfig.mode = newConfig.mode;
+                currentConfig.randomizeBoard = newConfig.randomizeBoard;
+                console.log("new config:", currentConfig)
+                client.emit("update-config-reply", true);
+                gameState = createEmptyGame(gameState.playerNames, currentConfig.board, currentConfig.randomizeBoard, currentConfig.maxLives, currentConfig.timeRemaining, currentConfig.mode);
+                const updatedTiles = Object.values(gameState.tilesById);
+                emitUpdatedTilesForPlayers(updatedTiles, true);
+                io.to("all").emit("all-tiles", updatedTiles);
+                // ocket.on("game-state", (newPlayerIndex: number, playersLives: Record<number,number> , playerNames: String[], newPhase: GamePhase, puzzleCategories: PuzzleCategory[], categoriesPlayersCompleted:  Record<number, number>, newBoard: number, newMode: string, timeRemain:number ) => {
+                io.emit("game-state", playerIndex, gameState.playerLives, gameState.playerNames, gameState.phase, getCurrentPuzzle().categories, gameState.categoriesPlayersCompleted, gameState.board, gameState.mode, gameState.timeRemaining);
+            }, 2000);
+        } else {
+            client.emit("update-config-reply", false);
+        }
+  })
+
+  client.on("redirect", (url: string) => {
+    io.emit("redirect", url)
   })
 })
 
@@ -293,6 +351,17 @@ app.get("/api/user", (req, res) => {
   }
   res.json(req.user || {})
 })
+
+app.get('/api/game/players/count', async (req, res) => {
+  const collection = db.collection('players');
+
+  try {
+    const playersCount = await collection.countDocuments();
+    res.json({ playersCount });
+  } catch (error) {
+    res.status(500).json({ error: 'Unable to fetch player count' });
+  }
+});
 
 // connect to Mongo
 client.connect().then(() => {
