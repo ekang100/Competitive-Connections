@@ -125,9 +125,16 @@ function emitUpdatedTilesForPlayers(tiles: Tile[], newGame = false) {
 
 
 io.on('connection', client => {
+  console.log('is this working')
   const user = (client.request as any).session?.passport?.user
   logger.info("new socket connection for user " + JSON.stringify(user))
+  // if(user === undefined){
+  //   console.log('testing')
+  // }
+
+
   if (!user) {
+    console.log('xyz')
     client.disconnect()
     return
   }

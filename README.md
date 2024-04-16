@@ -45,4 +45,9 @@ cd server
 npm run setup
 ```
 
+docker run -d --rm --name server1 competitive-connections-server
+docker run -d --rm --name ui1 competitive-connections-ui
+kubectl port-forward service/db 27017:27017
+
+
 
