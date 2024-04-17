@@ -21,21 +21,19 @@ stages:          # List of stages for jobs, and their order of execution
   - test
   - deploy
 
-build-job:       # This job runs in the build stage, which runs first.
+build-job:
   stage: build
-  script:    
-    - echo "Compiling the code..."
-    - echo "Compile complete."
+  script:
+    - apt-get update
+    - apt-get install -y docker.io
     - cd server
     - docker build -t competitive-connections-server .
     - cd ..
-    - sleep 15
     - cd ui
     - docker build -t competitive-connections-ui .
     - cd ..
-    - sleep 15
     - kubectl create -f k8s/
-    - sleep 30
+    - sleep 20
 # unit-test-job:   # This job runs in the test stage.
 #   stage: test    # It only starts when the job in the build stage completes successfully.
 #   script:
