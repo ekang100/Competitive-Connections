@@ -163,6 +163,7 @@ io.on('connection', client => {
       currentConfig.board,
       currentConfig.mode, 
       currentConfig.timeRemaining,
+      currentConfig.randomizeBoard,
       // gameState.playCount,
       //can add here the list of players who won already since its in game state
     )
@@ -295,12 +296,11 @@ changedState
   // playerWinner: string;
 
   client.on("update-config", (newConfig: Partial<Config>) => {
-    if (typeof newConfig.board === 'number' //&&
-            // typeof newConfig.maxLives === 'number' &&
-            // Object.keys(newConfig).length === 2 &&
-            // newConfig.board >= 1 &&
-            // newConfig.board <= 2 && // hard coded max for now
-            // newConfig.maxLives <= 10
+    if (newConfig.maxLives <= 10 &&
+       newConfig.maxLives >= 1 &&
+        newConfig.timeRemaining > 0 &&
+        newConfig.board <= 19 &&
+        newConfig.mode === "easy" || newConfig.mode === "hard"
           )
           {
             setTimeout(() => {
@@ -317,7 +317,7 @@ changedState
                 emitUpdatedTilesForPlayers(updatedTiles, true);
                 io.to("all").emit("all-tiles", updatedTiles);
                 // ocket.on("game-state", (newPlayerIndex: number, playersLives: Record<number,number> , playerNames: String[], newPhase: GamePhase, puzzleCategories: PuzzleCategory[], categoriesPlayersCompleted:  Record<number, number>, newBoard: number, newMode: string, timeRemain:number ) => {
-                io.emit("game-state", playerIndex, gameState.playerLives, gameState.playerNames, gameState.phase, getCurrentPuzzle().categories, gameState.categoriesPlayersCompleted, gameState.board, gameState.mode, gameState.timeRemaining);
+                io.emit("game-state", playerIndex, gameState.playerLives, gameState.playerNames, gameState.phase, getCurrentPuzzle().categories, gameState.categoriesPlayersCompleted, gameState.board, gameState.mode, gameState.timeRemaining, gameState.randomizeBoard);
             }, 2000);
         } else {
             client.emit("update-config-reply", false);

@@ -149,7 +149,8 @@ const phase = ref("")
 // const playCount = ref(-1)
 const timeRemaining: Ref<number> = ref(0);
 const board: Ref<number> = ref(0);
-const mode: Ref<string> = ref("")
+const mode: Ref<string> = ref("");
+const randomizeBoard: Ref<boolean> = ref(false);
 
 
 
@@ -169,7 +170,7 @@ socket.on("updated-tiles", (updatedTiles: Tile[]) => {
 //io.emit("game-state", gameState.playerNames, gameState.tilesById, gameState.playersCompleted, gameState.phase, gameState.playerLives, gameState.categoriesPlayersCompleted, gameState.timeRemaining, gameState.playerWinner, gameState.board, gameState.mode);
 //}, 2000);
 
-socket.on("game-state", (newPlayerIndex: number, playersLives: Record<number,number> , playerNames: String[], newPhase: GamePhase, puzzleCategories: PuzzleCategory[], categoriesPlayersCompleted:  Record<number, number>, newBoard: number, newMode: string, timeRemain:number ) => {
+socket.on("game-state", (newPlayerIndex: number, playersLives: Record<number,number> , playerNames: String[], newPhase: GamePhase, puzzleCategories: PuzzleCategory[], categoriesPlayersCompleted:  Record<number, number>, newBoard: number, newMode: string, timeRemain:number, newRandomizeBoard:boolean ) => {
   if (newPlayerIndex != null) {
     playerIndex.value = newPlayerIndex
   }
@@ -184,6 +185,7 @@ socket.on("game-state", (newPlayerIndex: number, playersLives: Record<number,num
   timeRemaining.value = timeRemain;
   board.value = newBoard;
   mode.value = newMode;
+  randomizeBoard.value = newRandomizeBoard;
 
   // playCount.value = newPlayCount
 })

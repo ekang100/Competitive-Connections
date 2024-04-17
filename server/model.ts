@@ -102,6 +102,7 @@ export interface GameState {
   playerWinner: string;
   board: number;
   mode: string;
+  randomizeBoard: boolean; // testing
 }
 
 
@@ -143,7 +144,7 @@ export function determineWinner(state: GameState) {
 // Function to get a random puzzle
 let currentPuzzle: Puzzle | null
 function getRandomPuzzle(): Puzzle | null {
-  const randomIndex = Math.floor(Math.random() * 2);
+  const randomIndex = Math.floor(Math.random() * 20);
   console.log(randomIndex)
   return allPuzzles[randomIndex];
 }
@@ -188,6 +189,7 @@ export function createEmptyGame(playerNames: string[], board: number, randomizeB
     const randomPuzzle = getRandomPuzzle();
     // board = null
     currentPuzzle = randomPuzzle
+    board = null
   }
   else{
     const configPuzzle = allPuzzles[board]
@@ -243,6 +245,7 @@ export function createEmptyGame(playerNames: string[], board: number, randomizeB
     playerWinner: "",
     board: board,
     mode: mode,
+    randomizeBoard: randomizeBoard,
   };
 
   // Print puzzle details
