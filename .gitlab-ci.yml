@@ -21,19 +21,19 @@ stages:          # List of stages for jobs, and their order of execution
   - test
   - deploy
 
+  
 build-job:
   stage: build
+  services:
+    - docker:dind
   script:
-    - apt-get update
-    - apt-get install -y docker.io
     - cd server
     - docker build -t competitive-connections-server .
     - cd ..
     - cd ui
     - docker build -t competitive-connections-ui .
     - cd ..
-    - kubectl create -f k8s/
-    - sleep 20
+    - kubectl apply -f k8s/
 # unit-test-job:   # This job runs in the test stage.
 #   stage: test    # It only starts when the job in the build stage completes successfully.
 #   script:
