@@ -26,7 +26,16 @@ build-job:       # This job runs in the build stage, which runs first.
   script:    
     - echo "Compiling the code..."
     - echo "Compile complete."
-
+    - cd server
+    - docker build -t competitive-connections-server .
+    - cd ..
+    - sleep 15
+    - cd ui
+    - docker build -t competitive-connections-ui .
+    - cd ..
+    - sleep 15
+    - kubectl create -f k8s/
+    - sleep 30
 # unit-test-job:   # This job runs in the test stage.
 #   stage: test    # It only starts when the job in the build stage completes successfully.
 #   script:
@@ -49,17 +58,6 @@ e2e-test-job:
     - sleep 5
     - echo "E2E tests completed successfully."
 
-feature-change-job:
-  stage: deploy
-  script:
-    - echo "Applying feature change"
-    # - # Connect to the server or container where the application is running
-    # - # For example, use SSH or Docker exec commands
-    # - ssh -p 8221 anthony.cui@10.198.121.233 "sed -i 's/Welcome/Howdy/' /path/to/ui/src/App.vue"
-    # - echo "Feature change applied on the running application."
-    # # - # Optionally restart the application or reload the configuration
-    # - ssh -p 8221 anthony.cui@10.198.121.233 "systemctl restart app"
-    - echo "Application restarted to apply changes."
 
 deploy-job:      # This job runs in the deploy stage.
   stage: deploy  # It only runs when *both* jobs in the test stage complete successfully.
