@@ -15,7 +15,7 @@
                 <b-overlay :show="busy">
                   <b-form @submit.stop.prevent="updateConfig(config)" class="my-3">
                     <b-form-group label="Choose board or randomize:" label-for="board-number">
-                      <b-form-input type="number" id="board-number" v-model="board" :disabled="randomizeBoard" :min="1" :max="5" placeholder="Enter board number"></b-form-input>
+                      <b-form-input type="number" id="board-number" v-model="board" :disabled="randomizeBoard" :min="0" :max="19" placeholder="Enter board number"></b-form-input>
                       <b-form-checkbox v-model="randomizeBoard" class="mt-2">Randomize Board</b-form-checkbox>
                     </b-form-group>
                     <b-form-group label="Lives:" label-for="lives">
@@ -62,7 +62,7 @@ const busy = ref(false)
 const isAdmin = ref(false)
 const isLoggedIn = ref(false)
 
-const board = ref(1)
+const board = ref(0)
 const maxLives = ref(3)
 const timeRemaining = ref(100);
 const mode = ref("easy")
