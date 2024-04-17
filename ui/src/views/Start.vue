@@ -56,7 +56,7 @@
 
 <script setup lang="ts">
 import { io } from "socket.io-client"
-import {computed, ref } from "vue"
+import { computed, ref } from "vue"
 const socket = io()
 const busy = ref(false)
 const isAdmin = ref(false)
