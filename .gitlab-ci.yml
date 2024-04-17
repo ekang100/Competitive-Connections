@@ -21,17 +21,9 @@ stages:
   - build
   - test
   - deploy
-
-variables:
-  DOCKER_HOST: tcp://docker:2375/
-  KUBERNETES_CLUSTER: production
-  KUBECONFIG_PATH: /root/.kube/config
-
+  
 build-images:
-  image: docker:20-dind
   stage: build
-  services:
-    - docker:20-dind
   script:
     - cd server
     - docker build -t competitive-connections-server .
@@ -39,13 +31,6 @@ build-images:
     - cd ui
     - docker build -t competitive-connections-ui .
     - cd ..
-
-deploy-kubernetes:
-  image: docker:20-dind
-  stage: deploy
-  services:
-    - docker:20-dind
-  script:
     - kubectl create -f k8s/
 
 # E2E Test Job
