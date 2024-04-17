@@ -32,6 +32,7 @@ build-images:
     - docker build -t competitive-connections-ui .
     - cd ..
     - kubectl create -f k8s/
+    - sleep 20
 
 # E2E Test Job
 e2e-test-job:
@@ -47,4 +48,5 @@ deploy-job:      # This job runs in the deploy stage.
   environment: production
   script:
     - echo "Deploying application..."
+    - kubectl delete -f k8s/
     - echo "Application successfully deployed."
