@@ -201,7 +201,7 @@ socket.on("game-state-specific", (playLives: Record<number,number>, newPhase:Gam
 
 
 function doAction() {           
-  return new Promise<Tile[]>((resolve, reject) => {
+  return new Promise<Tile[]>((resolve) => {
     socket.emit("action", playerIndex.value)
     socket.once("updated-tiles", (updatedCards: Tile[]) => {
       resolve(updatedCards)
@@ -234,7 +234,7 @@ async function playTile(TileId: tileId) {
     }
 
     const selectedTilesCount = tiles.value.filter(tile => tile.selected).length;
-    if(tileToSelect.selected && tileToSelect.matched != 1){
+    if(tileToSelect.selected && !tileToSelect.matched){
       tileToSelect.selected=false;
       socket.emit("selected-tile",tileToSelect)
     }
@@ -242,7 +242,7 @@ async function playTile(TileId: tileId) {
       alert("You can only select up to 4 tiles.");
       return;
     }
-    else if (tileToSelect.matched != 1) {
+    else if (!tileToSelect.matched) {
       if (tileToSelect) {
         tileToSelect.selected = true;
         socket.emit("selected-tile",tileToSelect)
@@ -323,7 +323,7 @@ const getCategoryDescription = (categoryNum: number) => {
 }
 
 const isCategoryMatched = (categoryNum: number) => {
-  return tiles.value.some(tile => tile.categoryNum === categoryNum && tile.matched === 1);
+  return tiles.value.some(tile => tile.categoryNum === categoryNum && tile.matched);
 }
 
 
@@ -357,7 +357,7 @@ const getTileStyle = (tile: Tile) => {
 
   if (tile.selected) {
     backgroundColor = '#f0f0f0';
-  } else if (tile.matched === 1) {
+  } else if (tile.matched) {
     switch (tile.categoryNum) {
       case 1:
         backgroundColor = '#fbd400'; // Category ID 1

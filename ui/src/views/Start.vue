@@ -56,7 +56,7 @@
 
 <script setup lang="ts">
 import { io } from "socket.io-client"
-import { Ref, computed, ref } from "vue"
+import { computed, ref } from "vue"
 const socket = io()
 const busy = ref(false)
 const isAdmin = ref(false)
@@ -106,7 +106,7 @@ async function startGame() {
 
 async function getConfig() {
   busy.value = true
-  const config = await new Promise<{ board : number, randomizeBoard: boolean, maxLives : number, timeRemaining : number, mode : string }>((resolve, reject) => {
+  const config = await new Promise<{ board : number, randomizeBoard: boolean, maxLives : number, timeRemaining : number, mode : string }>((resolve) => {
     socket.emit("get-config")
     socket.once("get-config-reply", (config: { board : number, randomizeBoard: boolean, maxLives : number, timeRemaining : number, mode : string }) => {
       resolve(config)
