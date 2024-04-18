@@ -29,11 +29,11 @@
     <span class="player-categories">
       <i class="fa fa-list" aria-hidden="true"></i> Categories: {{ playersCategoriesNum[playerIndex] }}
     </span>
+    <span class="guess-result">
+      <i class="fa fa-list" aria-hidden="true"></i> Guess Result: {{ oneAway[playerIndex] }}
+    </span>
   </div>
 </div>
-  <div class="guess-result">
-    <h3>Guess Result: {{ oneAway }}</h3>
-  </div>
     <b-button class="mx-2 my-2" size="sm" @click="socket.emit('new-game')">New Game</b-button>
     <b-badge class="mr-2 mb-2">{{ phase }}</b-badge>
     <div class="board">
@@ -114,12 +114,12 @@
   padding-top: 5px;
 }
 
-.player-lives, .player-categories {
+.player-lives, .player-categories, .guess-result {
   display: flex;
   align-items: center;
 }
 
-.player-lives i, .player-categories i {
+.player-lives i, .player-categories, .guess-result i {
   margin-right: 5px;
 }
 
@@ -191,7 +191,7 @@
 <script setup lang="ts">
 import { computed, ref, Ref } from 'vue'
 import { io } from "socket.io-client"
-import { Tile, formatTile, GamePhase, tileId, PuzzleCategory, Res } from "../data.ts"
+import { Tile, formatTile, GamePhase, tileId, PuzzleCategory } from "../data.ts"
 import { useRouter } from 'vue-router'; // Import useRouter for navigation
 //import { almost } from "../../../server/model";
 const router = useRouter(); // Initialize the router instance
@@ -216,7 +216,7 @@ const timeRemaining: Ref<number> = ref(0);
 const board: Ref<number> = ref(0);
 const mode: Ref<string> = ref("");
 const randomizeBoard: Ref<boolean> = ref(false);
-const oneAway: Ref<string> = ref("");
+const oneAway: Ref<String[]> = ref([]);
 
 
 
@@ -236,12 +236,13 @@ socket.on("updated-tiles", (updatedTiles: Tile[]) => {
 //io.emit("game-state", gameState.playerNames, gameState.tilesById, gameState.playersCompleted, gameState.phase, gameState.playerLives, gameState.categoriesPlayersCompleted, gameState.timeRemaining, gameState.playerWinner, gameState.board, gameState.mode);
 //}, 2000);
 
-socket.on("game-state", (newPlayerIndex: number, playersLives: Record<number,number> , playerNames: String[], newPhase: GamePhase, puzzleCategories: PuzzleCategory[], categoriesPlayersCompleted:  Record<number, number>, newBoard: number, newMode: string, timeRemain:number, newRandomizeBoard:boolean, newOneAway:string ) => {
+socket.on("game-state", (newPlayerIndex: number, playersLives: Record<number,number> , playerNames: String[], newPhase: GamePhase, puzzleCategories: PuzzleCategory[], categoriesPlayersCompleted:  Record<number, number>, newBoard: number, newMode: string, timeRemain:number, newRandomizeBoard:boolean, newOneAway:Record<number, string> ) => {
   if (newPlayerIndex != null) {
     playerIndex.value = newPlayerIndex
   }
 
   console.log('these are the player lives:', playersLives)
+  console.log(newMode)
   listOfPlayerNames.value = playerNames
   // currentTurnPlayerIndex.value = newCurrentTurnPlayerIndex
   phase.value = newPhase
@@ -252,12 +253,12 @@ socket.on("game-state", (newPlayerIndex: number, playersLives: Record<number,num
   board.value = newBoard;
   mode.value = newMode;
   randomizeBoard.value = newRandomizeBoard;
-  oneAway.value = newOneAway;
+  oneAway.value = Object.values(newOneAway);
 
   // playCount.value = newPlayCount
 })
 
-socket.on("game-state-specific", (playLives: Record<number,number>, newPhase:GamePhase, categoriesPlayersCompleted:  Record<number, number>, newOneAway: string) =>{
+socket.on("game-state-specific", (playLives: Record<number,number>, newPhase:GamePhase, categoriesPlayersCompleted:  Record<number, number>, newOneAway: Record<number,string>) =>{
  if (newPhase === 'game-over'){
   router.push('/game-over');
  } 
@@ -266,17 +267,16 @@ socket.on("game-state-specific", (playLives: Record<number,number>, newPhase:Gam
   console.log("New oneAway received:", newOneAway);
   phase.value = newPhase
   playerLives.value = Object.values(playLives);     
-  playersCategoriesNum.value = Object.values(categoriesPlayersCompleted)
-  oneAway.value = newOneAway;
+  playersCategoriesNum.value = Object.values(categoriesPlayersCompleted);
+  oneAway.value = Object.values(newOneAway);
 })
 
 
 function doAction() {           
-  return new Promise<Res>((resolve) => {
+  return new Promise<Tile[]>((resolve) => {
     socket.emit("action", playerIndex.value)
-    socket.once("action-response", (response) => {
-      //applyUpdatedCards(response.updatedTiles);
-      resolve(response);  // Pass the oneAway message to be used after promise resolution
+    socket.once("update-tiles", (updatedTiles: Tile[]) => {
+      resolve(updatedTiles);  // Pass the oneAway message to be used after promise resolution
     });
   })
 }
@@ -321,6 +321,7 @@ async function playTile(TileId: tileId) {
       }
   
     }
+    console.log('selected tiles:', tileToSelect)
 
     // const updatedCards = await doAction()
     // if (updatedCards.length === 0) {

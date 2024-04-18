@@ -60,29 +60,30 @@ export function matchingPuzzleHard(selectedTiles: Tile[]): number {
 
 
 export function matchingPuzzle(selectedTiles: Tile[]): number {
-  // Get the category number of the first selected tile
-  const firstCategoryNum = selectedTiles[0].categoryNum;
-  let count = 1;
-  // Check if all selected tiles have the same category number
-  for (let i = 1; i < selectedTiles.length; i++) {
-    // if (selectedTiles[i].categoryNum !== firstCategoryNum) {
-    //   return 0; // Return false if any tile has a different category number
-    // }
-    // else if (selectedTiles[i].matched == 1){
-    //   count++;
-    // }
-    if (selectedTiles[i].categoryNum == firstCategoryNum){
-      count++;
+  // Map to count occurrences of each category number
+  const categoryCount = new Map<number, number>();
+
+  // Count each category in the array
+  for (let tile of selectedTiles) {
+    const count = categoryCount.get(tile.categoryNum) || 0;
+    categoryCount.set(tile.categoryNum, count + 1);
+  }
+
+  // Determine the result based on counts
+  let maxCount = 0;
+  categoryCount.forEach((count, categoryNum) => {
+    if (count > maxCount) {
+      maxCount = count;
     }
-  }
-  if (count == 4) {
-    return 1; // If all tiles have the same category number, return true
-  }
-  else if (count == 3){
-    return 2; // If you are one away
-  }
-  else {
-    return 0;
+  });
+
+  // Interpret the max count to determine the outcome
+  if (maxCount === selectedTiles.length) {
+    return 1;  // All tiles match, true
+  } else if (maxCount === 3) {
+    return 2;  // Exactly three tiles match
+  } else {
+    return 0;  // No three or more tiles match
   }
 }
 
@@ -103,7 +104,7 @@ export interface GameState {
   board: number;
   mode: string;
   randomizeBoard: boolean; // testing
-  oneAway: string;
+  oneAway: Record<number, string>;
 }
 
 
@@ -213,6 +214,10 @@ export function createEmptyGame(playerNames: string[], board: number, randomizeB
     categoriesPlayersCompleted[playerIndex] = 0;
   });
   const tiles: Tile[] = [];
+  const oneAway: Record<number, string> = {};
+  playerNames.forEach((_, playerIndex) => {
+    oneAway[playerIndex] = '';
+  });
   
   // Iterate through each player
   playerNames.forEach((name, playerIndex) => {
@@ -247,7 +252,7 @@ export function createEmptyGame(playerNames: string[], board: number, randomizeB
     board: board,
     mode: mode,
     randomizeBoard: randomizeBoard,
-    oneAway: "",
+    oneAway: oneAway,
   };
 
   // Print puzzle details
@@ -269,16 +274,16 @@ export function formatTile(tile: Tile): string {
 
 //export let almost = false;
 
-export interface Res {
-  tiles: Tile[]
-  message: string
-}
+// export interface Res {
+//   tiles: Tile[]
+//   message: string
+// }
 
-export function doAction(state: GameState, playerIndex: number): Res {         //need to have a check for matched tiles
-  let response = {
-    tiles: Object.values(state.tilesById),
-    message: ''
-  }
+export function doAction(state: GameState, playerIndex: number): Tile[] {         //need to have a check for matched tiles
+  // let response = {
+  //   tiles: Object.values(state.tilesById),
+  //   message: ''
+  // }
   if (state.phase === "game-over" || state.playerLives[playerIndex]==0) {
     // Game is already over
     return;
@@ -297,14 +302,15 @@ console.log('checkpoint2')
 
   console.log('these are the tiles you submitted', submittedTiles)
   // Check if submitted tiles match the puzzle
+  const matchResult = matchingPuzzle(submittedTiles);
   if (state.mode == "easy") {
-    if (matchingPuzzle(submittedTiles) == 1) {
+    if (matchResult == 1) {
       // Mark submitted tiles as matched and unselect them
       submittedTiles.forEach(tile => {
         tile.matched = 1;
         tile.selected = false;
       });
-      state.oneAway = 'Correct!'
+      state.oneAway[playerIndex] = 'Correct!'
       //response.message = 'Correct!'
                                                       //add else statement here to decrement lives
   
@@ -323,14 +329,14 @@ console.log('checkpoint2')
       }
     }
     else if (state.playerLives[playerIndex]>0){
-      if (matchingPuzzle(submittedTiles) == 2){
+      if (matchResult == 2){
         // show message "One away" on screen
         console.log('you are one away')
-        state.oneAway = 'One away...'
+        state.oneAway[playerIndex] = 'One away...'
         //response.message = 'One away...'
       }
-      else if (matchingPuzzle(submittedTiles) == 0){
-        state.oneAway = 'Incorrect lol'
+      else {
+        state.oneAway[playerIndex] = 'Incorrect easy mode'
         //response.message = 'Incorrect lol'
       }
       state.playerLives[playerIndex]--;
@@ -345,7 +351,7 @@ console.log('checkpoint2')
         tile.matched = 1;
         tile.selected = false;
       });
-      state.oneAway = 'Correct!'
+      state.oneAway[playerIndex] = 'Correct!'
       //response.message = 'Correct!'
                                                       //add else statement here to decrement lives
   
@@ -365,7 +371,7 @@ console.log('checkpoint2')
     }
     else if (state.playerLives[playerIndex]>0){
       state.playerLives[playerIndex]--;
-      state.oneAway = 'Incorrect lol'
+      state.oneAway[playerIndex] = 'Incorrect lol'
       //response.message = 'Incorrect lol'
     }   
 
@@ -378,11 +384,9 @@ console.log('checkpoint2')
   if (winner !== null) {
     // Set game phase to "game-over" if there is a winner
     state.phase = "game-over";
-    response.tiles = Object.values(state.tilesById);
-    return response;
+    return Object.values(state.tilesById);
   }
-    response.tiles = Object.values(state.tilesById);
-    return response;
+    return Object.values(state.tilesById);
 }
 
 /**
