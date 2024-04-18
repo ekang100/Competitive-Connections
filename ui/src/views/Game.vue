@@ -31,6 +31,9 @@
     </span>
   </div>
 </div>
+  <div class="guess-result">
+    <h3>Guess Result: {{ oneAway }}</h3>
+  </div>
     <b-button class="mx-2 my-2" size="sm" @click="socket.emit('new-game')">New Game</b-button>
     <b-badge class="mr-2 mb-2">{{ phase }}</b-badge>
     <div class="board">
@@ -188,7 +191,7 @@
 <script setup lang="ts">
 import { computed, ref, Ref } from 'vue'
 import { io } from "socket.io-client"
-import { Tile, formatTile, GamePhase, tileId, PuzzleCategory } from "../data.ts"
+import { Tile, formatTile, GamePhase, tileId, PuzzleCategory, Res } from "../data.ts"
 import { useRouter } from 'vue-router'; // Import useRouter for navigation
 //import { almost } from "../../../server/model";
 const router = useRouter(); // Initialize the router instance
@@ -213,6 +216,7 @@ const timeRemaining: Ref<number> = ref(0);
 const board: Ref<number> = ref(0);
 const mode: Ref<string> = ref("");
 const randomizeBoard: Ref<boolean> = ref(false);
+const oneAway: Ref<string> = ref("");
 
 
 
@@ -232,7 +236,7 @@ socket.on("updated-tiles", (updatedTiles: Tile[]) => {
 //io.emit("game-state", gameState.playerNames, gameState.tilesById, gameState.playersCompleted, gameState.phase, gameState.playerLives, gameState.categoriesPlayersCompleted, gameState.timeRemaining, gameState.playerWinner, gameState.board, gameState.mode);
 //}, 2000);
 
-socket.on("game-state", (newPlayerIndex: number, playersLives: Record<number,number> , playerNames: String[], newPhase: GamePhase, puzzleCategories: PuzzleCategory[], categoriesPlayersCompleted:  Record<number, number>, newBoard: number, newMode: string, timeRemain:number, newRandomizeBoard:boolean ) => {
+socket.on("game-state", (newPlayerIndex: number, playersLives: Record<number,number> , playerNames: String[], newPhase: GamePhase, puzzleCategories: PuzzleCategory[], categoriesPlayersCompleted:  Record<number, number>, newBoard: number, newMode: string, timeRemain:number, newRandomizeBoard:boolean, newOneAway:string ) => {
   if (newPlayerIndex != null) {
     playerIndex.value = newPlayerIndex
   }
@@ -248,28 +252,32 @@ socket.on("game-state", (newPlayerIndex: number, playersLives: Record<number,num
   board.value = newBoard;
   mode.value = newMode;
   randomizeBoard.value = newRandomizeBoard;
+  oneAway.value = newOneAway;
 
   // playCount.value = newPlayCount
 })
 
-socket.on("game-state-specific", (playLives: Record<number,number>, newPhase:GamePhase, categoriesPlayersCompleted:  Record<number, number>) =>{
+socket.on("game-state-specific", (playLives: Record<number,number>, newPhase:GamePhase, categoriesPlayersCompleted:  Record<number, number>, newOneAway: string) =>{
  if (newPhase === 'game-over'){
   router.push('/game-over');
  } 
   
   console.log('please work', playLives)
+  console.log("New oneAway received:", newOneAway);
   phase.value = newPhase
   playerLives.value = Object.values(playLives);     
   playersCategoriesNum.value = Object.values(categoriesPlayersCompleted)
+  oneAway.value = newOneAway;
 })
 
 
 function doAction() {           
-  return new Promise<Tile[]>((resolve) => {
+  return new Promise<Res>((resolve) => {
     socket.emit("action", playerIndex.value)
-    socket.once("updated-tiles", (updatedCards: Tile[]) => {
-      resolve(updatedCards)
-    })
+    socket.once("action-response", (response) => {
+      //applyUpdatedCards(response.updatedTiles);
+      resolve(response);  // Pass the oneAway message to be used after promise resolution
+    });
   })
 }
 
@@ -341,6 +349,8 @@ const canSubmit = computed(() => {
 function submitAction() {
   if (canSubmit.value) {
     doAction();
+    //console.log('DID THE ACTION')
+    //alert(oneAway.value);
   }
   else {
     alert("Please select exactly 4 tiles.");

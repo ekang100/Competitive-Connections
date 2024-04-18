@@ -103,6 +103,7 @@ export interface GameState {
   board: number;
   mode: string;
   randomizeBoard: boolean; // testing
+  oneAway: string;
 }
 
 
@@ -246,6 +247,7 @@ export function createEmptyGame(playerNames: string[], board: number, randomizeB
     board: board,
     mode: mode,
     randomizeBoard: randomizeBoard,
+    oneAway: "",
   };
 
   // Print puzzle details
@@ -267,7 +269,16 @@ export function formatTile(tile: Tile): string {
 
 //export let almost = false;
 
-export function doAction(state: GameState, playerIndex: number): Tile[] {         //need to have a check for matched tiles
+export interface Res {
+  tiles: Tile[]
+  message: string
+}
+
+export function doAction(state: GameState, playerIndex: number): Res {         //need to have a check for matched tiles
+  let response = {
+    tiles: Object.values(state.tilesById),
+    message: ''
+  }
   if (state.phase === "game-over" || state.playerLives[playerIndex]==0) {
     // Game is already over
     return;
@@ -293,6 +304,8 @@ console.log('checkpoint2')
         tile.matched = 1;
         tile.selected = false;
       });
+      state.oneAway = 'Correct!'
+      //response.message = 'Correct!'
                                                       //add else statement here to decrement lives
   
       // Decrease the number of categories remaining for the player
@@ -310,14 +323,18 @@ console.log('checkpoint2')
       }
     }
     else if (state.playerLives[playerIndex]>0){
-      if (matchingPuzzle(submittedTiles) === 2){
+      if (matchingPuzzle(submittedTiles) == 2){
         // show message "One away" on screen
         console.log('you are one away')
-        //almost = true;
-        //console.log(almost)
+        state.oneAway = 'One away...'
+        //response.message = 'One away...'
+      }
+      else if (matchingPuzzle(submittedTiles) == 0){
+        state.oneAway = 'Incorrect lol'
+        //response.message = 'Incorrect lol'
       }
       state.playerLives[playerIndex]--;
-    }   
+    } 
 
     
   }
@@ -328,6 +345,8 @@ console.log('checkpoint2')
         tile.matched = 1;
         tile.selected = false;
       });
+      state.oneAway = 'Correct!'
+      //response.message = 'Correct!'
                                                       //add else statement here to decrement lives
   
       // Decrease the number of categories remaining for the player
@@ -346,6 +365,8 @@ console.log('checkpoint2')
     }
     else if (state.playerLives[playerIndex]>0){
       state.playerLives[playerIndex]--;
+      state.oneAway = 'Incorrect lol'
+      //response.message = 'Incorrect lol'
     }   
 
     
@@ -357,10 +378,11 @@ console.log('checkpoint2')
   if (winner !== null) {
     // Set game phase to "game-over" if there is a winner
     state.phase = "game-over";
-    return Object.values(state.tilesById);
+    response.tiles = Object.values(state.tilesById);
+    return response;
   }
-
-    return Object.values(state.tilesById);
+    response.tiles = Object.values(state.tilesById);
+    return response;
 }
 
 /**

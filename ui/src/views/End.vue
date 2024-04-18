@@ -1,8 +1,9 @@
 <template>
     <div class="end-container">
         <h2 style="text-align: center; margin-top: 30px;">Game Over</h2>
-        <button class="return-button" @click="goToPreGame">Return Everyone to Menu</button>
-
+        <div v-if="isAdmin">
+            <button class="return-button" @click="goToPreGame">Return Everyone to Menu</button>
+        </div>
         <div v-if="finishedPlayer">
             <div class="winner-section">
                 <h3 style="color: gold; font-size: 24px;">🏆 Winner: {{ finishedPlayer }} 🏆</h3>
@@ -155,9 +156,18 @@ const playerLives: Ref<number[]> = ref([]);
 const listOfPlayerNames: Ref<string[]> = ref([])
 const categories: Ref<PuzzleCategory[]> = ref([])
 const playersCategoriesNum: Ref<number[]> = ref([]);
-const gamesWon: Ref<string> = ref("")
+const isAdmin = ref(false)
   
 const router = useRouter(); // Initialize the Vue router
+
+async function checkAdmin() {
+    const user = await (await fetch("/api/user")).json()
+    isAdmin.value = user.groups.includes("competitive-connections-admin")
+}
+
+socket.on("connect", checkAdmin)
+
+const gamesWon: Ref<string> = ref("")
 
 // onMounted(() => {
 //     fetchGamesWon();
@@ -166,10 +176,10 @@ const router = useRouter(); // Initialize the Vue router
 function findWinner(): void {
     for (let i = 0; i < playersCategoriesNum.value.length; i++) {
     if (playersCategoriesNum.value[i] === 4) {
-      finishedPlayer.value = listOfPlayerNames.value[i];
-      break; // Break out of the loop once a winner is found
+    finishedPlayer.value = listOfPlayerNames.value[i];
+    break; // Break out of the loop once a winner is found
     }
-  }
+}
 }
 
   
