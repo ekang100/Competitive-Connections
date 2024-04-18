@@ -16,7 +16,7 @@
         <div v-if="gamesWon == '1'">
   <p>You have won a total of <b>{{ gamesWon }}</b> game.</p>
 </div>
-<div v-else-if="gamesWon !== null">
+<div v-else-if="gamesWon !== ''">
   <p>You have won a total of <b>{{ gamesWon }}</b> games.</p>
 </div>
         <div class="player-list">
