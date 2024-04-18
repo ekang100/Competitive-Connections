@@ -56,7 +56,7 @@
 
 <script setup lang="ts">
 import { io } from "socket.io-client"
-import {computed, ref } from "vue"
+import { computed, ref } from "vue"
 const socket = io()
 const busy = ref(false)
 const isAdmin = ref(false)
@@ -67,6 +67,7 @@ const maxLives = ref(3)
 const timeRemaining = ref(100);
 const mode = ref("easy")
 const randomizeBoard = ref(false)
+
 
 // const config = ref({ board: board.value, maxLives: maxLives.value, timeLimit: timeRemaining.value, mode: mode.value })
 const config = computed(() => ({ board: board.value, randomizeBoard: randomizeBoard.value, maxLives: maxLives.value, timeRemaining: timeRemaining.value, mode: mode.value }))
@@ -90,6 +91,8 @@ socket.on("redirect", (url: string) => {
     socket.emit("new-game")
 })
 
+
+
 async function startGame() {
     await new Promise<void>((resolve, reject) => {
     socket.emit("redirect", "/0")
@@ -103,6 +106,8 @@ async function startGame() {
       })
     })
 }
+
+
 
 async function getConfig() {
   busy.value = true

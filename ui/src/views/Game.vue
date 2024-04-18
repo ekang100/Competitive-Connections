@@ -13,7 +13,7 @@
     <div id="messageContainer"></div>
 
     <div v-if = "playerIndex!='all' && playerLives[playerIndex]==0 && activePlayers.length>0">
-        <h2> You ran out of lives! Wait for the game to finish since the following players are still cooking:</h2>
+        <h2> You ran out of lives! Wait for the game to finish since the following players are still playing:</h2>
         
         <div v-for="(playerName, playerIndex) in activePlayers" >
             {{ playerName }}
@@ -45,8 +45,8 @@
         :style="getTileStyle(tile)"
 
       >
-        <pre style="margin: auto; text-align: center;align-items: center; justify-content: center; display: flex;  padding-top: 40px; ">{{ formatTile(tile) }}</pre>
-        <div v-if="isCategoryMatched(tile.categoryNum)" style="text-align: center; font-weight: bold; font-size: 12px;">
+        <pre class="tile-text">{{ formatTile(tile) }}</pre>
+        <div v-if="isCategoryMatched(tile.categoryNum)" class = "cat-text">
     {{ getCategoryDescription(tile.categoryNum) }}
 </div>
       </span>
@@ -57,6 +57,7 @@
 </template>
 
 <style scoped>
+
 
   h2,
     div,
@@ -78,13 +79,17 @@
   }
   
   .tile {
-    display: block;
-    width: 50px; /* Adjust width as needed */
-    height: 50px; /* Adjust height as needed */
+    display: inline-block;
+    width: 100px; /* Adjust width as needed */
+    height: 100px; /* Adjust height as needed */
+    margin: 5px; /* Adjust margin as needed */
     border: 1px solid black; /* Add border for better visualization */
     cursor: pointer; /* Change cursor to pointer on hover */
   }
 
+  .cat-text{
+    text-align: center; font-weight: bold; font-size: 12px;
+  }
   .player-info {
   display: flex;
   flex-direction: column;
@@ -92,6 +97,10 @@
   padding: 10px;
   border: 1px solid #ccc;
   border-radius: 5px;
+}
+
+.tile-text{
+  margin: auto; text-align: center;align-items: center; justify-content: center; display: flex;  padding-top: 40px;
 }
 
 .player-name {
@@ -113,18 +122,71 @@
 .player-lives i, .player-categories i {
   margin-right: 5px;
 }
+
+
+/* Define mobile styles */
+@media (max-width: 375px) {
+    /* Reduce the number of columns on mobile devices */
+    .board {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr); /* 4 columns */
+      width: 90%; /* Set the board width to 90% to fit better on mobile screens */
+        margin: 10px auto; /* Add margin for better spacing */
+        justify-content: center;
+    margin: 0 auto; /* Center the board horizontally */
+    width: fit-content; /* Adjust the width according to the content */
+
+    }
+    
+    .tile {
+        width: 50px; /* Reduce width for smaller screens */
+        height: 50px; /* Reduce height for smaller screens */
+        margin: 2px; /* Adjust margin for smaller screens */
+        display: flex; /* Enable Flexbox */
+        flex-direction: column; /* Arrange the content vertically */
+        align-items: center; /* Align items to the top */
+        justify-content: center; /* Align content to the top */
+    }
+    
+   /* Tile text adjustments */
+   .tile-text {
+        margin: 0; /* Remove margin */
+        padding: 0; /* Remove padding */
+        text-align: center; /* Center text within the tile */
+        flex: 1; /* Allow text to grow and fill the tile */
+        justify-content: center; /* Center the title text horizontally */
+        /* padding-left: 10px; Add padding to the left side of the text */
+
+    }
+
+    /* Category text */
+    .cat-text {
+        text-align: center; /* Center the text */
+        font-weight: bold; /* Keep text bold */
+        font-size: 8px; /* Reduce the font size */
+        margin-top: 2px; /* Add minimal margin at the top */
+    }
+/* 
+      /* Add padding to the bottom of the text within the tile */
+      /* .tile pre {
+        padding-bottom: 30px; /* Adjust the value as needed }
+         */
+    
+
+
+    /* Adjust the layout of player info for mobile devices */
+    .player-info {
+        flex-direction: column; /* Display player info in a single column */
+        margin: 10px; /* Adjust margin for smaller screens */
+    }
+
+    /* Adjust font size for better readability on smaller screens */
+    h2, div, span, pre, button {
+        font-size: 10px; /* Reduce text size */
+    }
+}
 </style>
 
-<style scoped>
-  .tile {
-    display: inline-block;
-    width: 100px; /* Adjust width as needed */
-    height: 100px; /* Adjust height as needed */
-    margin: 5px; /* Adjust margin as needed */
-    border: 1px solid black; /* Add border for better visualization */
-    cursor: pointer; /* Change cursor to pointer on hover */
-  }
-</style>
 
 <script setup lang="ts">
 import { computed, ref, Ref } from 'vue'
