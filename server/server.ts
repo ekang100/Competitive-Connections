@@ -1,6 +1,6 @@
 import { createServer } from "http"
 import { Server } from "socket.io"
-import {createEmptyGame, doAction, filterTilesForPlayerPerspective, getCurrentPuzzle } from "./model"
+import {createEmptyGame, determineWinner, doAction, filterTilesForPlayerPerspective, getCurrentPuzzle } from "./model"
 import { Puzzle, PuzzleCategory, tileId, allPuzzles, Tile, Config, startGameTimer } from "./model"
 import express, { NextFunction, Request, Response } from 'express'
 import bodyParser from 'body-parser'
@@ -133,6 +133,25 @@ function emitUpdatedTilesForPlayers(tiles: Tile[], newGame = false) {
 }
 
 
+async function updateGamesWon(winnerId: number) {
+  const playerWinName = gameState.playerNames[winnerId]
+  console.log('abc this is the playerwinnername ',playerWinName)
+  try {
+    // Update the `gamesWon` field in the `players` collection for the winner
+    const result = await db.collection('players').updateOne(
+      { username: playerWinName },
+      { $inc: { gamesWon: 1 } }
+    );
+    if (result.modifiedCount > 0) {
+      console.log(`Successfully updated gamesWon for player ${winnerId}`);
+    } else {
+      console.log(`No updates were made for player ${winnerId}`);
+    }
+  } catch (error) {
+    console.error(`Error updating gamesWon for player ${winnerId}:`, error);
+  }
+}
+
 io.on('connection', client => {
   console.log('is this working')
   const user = (client.request as any).session?.passport?.user
@@ -196,6 +215,10 @@ io.on('connection', client => {
       console.log('checkpoint 1')
 
       const updatedCards = doAction(gameState, playerIndex)
+      if(gameState.phase === "game-over"){
+        console.log('emmm')
+        updateGamesWon(playerIndex)
+      }
       emitUpdatedTilesForPlayers(updatedCards)
     } else {
       // no actions allowed from "all"
@@ -363,6 +386,26 @@ app.get('/api/game/players/count', async (req, res) => {
   }
 });
 
+app.get('/api/:player/gamesWon', async (req, res) => {
+  const collection = db.collection('players');
+  const playerName = req.params.player; // Get the player name from the URL parameter
+  try {
+      // Find the player in the collection based on the name
+      const player = await collection.findOne({ username: playerName });
+
+      if (player) {
+          // If the player is found, return their gamesWon data
+          res.json({ gamesWon: player.gamesWon });
+      } else {
+          // If the player is not found, return a 404 error
+          res.status(404).json({ error: 'Player not found' });
+      }
+  } catch (error) {
+      // Handle any errors that occur during the query
+      res.status(500).json({ error: 'Unable to fetch gamesWon data' });
+  }
+});
+
 // connect to Mongo
 client.connect().then(() => {
   logger.info('connected successfully to MongoDB')
@@ -395,7 +438,7 @@ client.connect().then(() => {
         id: userInfo.sub,
         username: userInfo.preferred_username || userInfo.nickname,
         email: userInfo.email,
-        gamesPlayed: 0,
+        gamesWon: 0,
         groups: groups // Store the groups in the database as part of the player's record
       };
 

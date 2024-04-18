@@ -13,6 +13,12 @@
                 <h3 style="color: red; font-size: 24px;">No one won this game.</h3>
             </div>
         </div>
+        <div v-if="gamesWon == '1'">
+  <p>You have won a total of <b>{{ gamesWon }}</b> game.</p>
+</div>
+<div v-else-if="gamesWon !== ''">
+  <p>You have won a total of <b>{{ gamesWon }}</b> games.</p>
+</div>
         <div class="player-list">
             <div v-for="(player, index) in listOfPlayerNames" :key="index" 
                 :class="{ 'current-user': index === playerIndex }" 
@@ -149,8 +155,22 @@ const playerLives: Ref<number[]> = ref([]);
 const listOfPlayerNames: Ref<string[]> = ref([])
 const categories: Ref<PuzzleCategory[]> = ref([])
 const playersCategoriesNum: Ref<number[]> = ref([]);
+const gamesWon: Ref<string> = ref("")
   
 const router = useRouter(); // Initialize the Vue router
+
+// onMounted(() => {
+//     fetchGamesWon();
+// });
+
+function findWinner(): void {
+    for (let i = 0; i < playersCategoriesNum.value.length; i++) {
+    if (playersCategoriesNum.value[i] === 4) {
+      finishedPlayer.value = listOfPlayerNames.value[i];
+      break; // Break out of the loop once a winner is found
+    }
+  }
+}
 
   
 socket.on("game-state-specific", (playLives: Record<number,number>, newPhase:GamePhase, categoriesPlayersCompleted:  Record<number, number>) =>{
@@ -161,13 +181,10 @@ socket.on("game-state-specific", (playLives: Record<number,number>, newPhase:Gam
 //   finishedPlayer.value = playerWin
 //   console.log('this is the player that won:', finishedPlayer.value)
   // Check if there is a winner with 4 categories completed
-  for (let i = 0; i < playersCategoriesNum.value.length; i++) {
-    if (playersCategoriesNum.value[i] === 4) {
-      finishedPlayer.value = listOfPlayerNames.value[i];
-      break; // Break out of the loop once a winner is found
-    }
-  }
+  findWinner();
+
 })
+
 
 
 socket.on("game-state", (newPlayerIndex: number, playersLives: Record<number,number> , playerNames: string[], newPhase: GamePhase, puzzleCategories: PuzzleCategory[], categoriesPlayersCompleted:  Record<number, number> ) => {
@@ -183,6 +200,7 @@ socket.on("game-state", (newPlayerIndex: number, playersLives: Record<number,num
   categories.value = puzzleCategories
   playersCategoriesNum.value = Object.values(categoriesPlayersCompleted)
   // playCount.value = newPlayCount
+  fetchGamesWon();
 })
 
 
@@ -198,6 +216,33 @@ function goToPreGame() {
   socket.emit('change-state', 'pre-game');
   
   // Navigate the user to the home page
+}
+
+
+// Function to fetch gamesWon data for the specified player
+async function fetchGamesWon() {
+    const playerName = typeof playerIndex.value === 'number' ? listOfPlayerNames.value[playerIndex.value] : null;
+
+// Check if the index is a valid number or handle the "all" case
+if (playerName) {
+    // Player name is available, proceed with fetching gamesWon data
+} else if (playerIndex.value === 'all') {
+    // Handle the case when playerIndex is "all"
+}
+    try {
+        // Send a request to the API to fetch the gamesWon data for the player
+        const response = await fetch(`/api/${playerName}/gamesWon`);
+        const data = await response.json();
+
+        if (response.ok) {
+            // Update the state variable with the gamesWon data
+            gamesWon.value = data.gamesWon;
+        } else {
+            console.error('Error fetching gamesWon data:', data.error);
+        }
+    } catch (error) {
+        console.error('Error fetching gamesWon data:', error);
+    }
 }
 
   </script>
