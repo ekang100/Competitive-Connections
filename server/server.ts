@@ -164,6 +164,7 @@ io.on('connection', client => {
       currentConfig.mode, 
       currentConfig.timeRemaining,
       currentConfig.randomizeBoard,
+      gameState.oneAway,
       // gameState.playCount,
       //can add here the list of players who won already since its in game state
     )
@@ -195,14 +196,21 @@ io.on('connection', client => {
     if (typeof playerIndex === "number") {
       console.log('checkpoint 1')
 
-      const updatedCards = doAction(gameState, playerIndex)
-      emitUpdatedTilesForPlayers(updatedCards)
+      const response = doAction(gameState, playerIndex)
+      emitUpdatedTilesForPlayers(response.tiles)
     } else {
       // no actions allowed from "all"
     }
+    // io.to("all").emit(
+    //   "updated-tiles", 
+    //   Object.values(gameState.tilesById),    
+    // )
+    // io.to("all").emit(
+    //   "action-done",
+    // )
     io.to("all").emit(
-      "updated-tiles", 
-      Object.values(gameState.tilesById),    
+      "action-response",
+      { updatedTiles: Object.values(gameState.tilesById), oneAway: gameState.oneAway }
     )
     emitGameState()
 
@@ -211,7 +219,7 @@ io.on('connection', client => {
        gameState.playerLives,
        gameState.phase,
        gameState.categoriesPlayersCompleted,
-       gameState.playerWinner
+       gameState.oneAway
     )
   })
 
@@ -264,7 +272,8 @@ changedState
       "game-state-specific",
        gameState.playerLives,
        gameState.phase,
-       gameState.categoriesPlayersCompleted
+       gameState.categoriesPlayersCompleted,
+       gameState.oneAway
     )  
     io.emit('game-time', gameState.timeRemaining);
     
@@ -275,7 +284,7 @@ changedState
       // If the game is over, clear the interval
       if (gameState.phase === "game-over") {
           clearInterval(emitGameTime);
-          io.emit('game-state-specific', gameState.playerLives, gameState.phase, gameState.categoriesPlayersCompleted
+          io.emit('game-state-specific', gameState.playerLives, gameState.phase, gameState.categoriesPlayersCompleted, gameState.oneAway
         )
       }
   }, 1000);
@@ -317,7 +326,7 @@ changedState
                 emitUpdatedTilesForPlayers(updatedTiles, true);
                 io.to("all").emit("all-tiles", updatedTiles);
                 // ocket.on("game-state", (newPlayerIndex: number, playersLives: Record<number,number> , playerNames: String[], newPhase: GamePhase, puzzleCategories: PuzzleCategory[], categoriesPlayersCompleted:  Record<number, number>, newBoard: number, newMode: string, timeRemain:number ) => {
-                io.emit("game-state", playerIndex, gameState.playerLives, gameState.playerNames, gameState.phase, getCurrentPuzzle().categories, gameState.categoriesPlayersCompleted, gameState.board, gameState.mode, gameState.timeRemaining, gameState.randomizeBoard);
+                io.emit("game-state", playerIndex, gameState.playerLives, gameState.playerNames, gameState.phase, getCurrentPuzzle().categories, gameState.categoriesPlayersCompleted, gameState.board, gameState.mode, gameState.timeRemaining, gameState.randomizeBoard, gameState.oneAway);
             }, 2000);
         } else {
             client.emit("update-config-reply", false);
@@ -395,7 +404,7 @@ client.connect().then(() => {
         id: userInfo.sub,
         username: userInfo.preferred_username || userInfo.nickname,
         email: userInfo.email,
-        gamesPlayed: 0,
+        gamesWon: 0,
         groups: groups // Store the groups in the database as part of the player's record
       };
 

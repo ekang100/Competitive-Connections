@@ -52,3 +52,8 @@ export interface GameState {
 export function formatTile(tile: Tile): string {
   return tile.clue
 }
+
+export interface Res {
+  tiles: Tile[]
+  message: string
+}
