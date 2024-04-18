@@ -161,6 +161,21 @@ async function checkAdmin() {
 
 socket.on("connect", checkAdmin)
 
+const gamesWon: Ref<string> = ref("")
+
+// onMounted(() => {
+//     fetchGamesWon();
+// });
+
+function findWinner(): void {
+    for (let i = 0; i < playersCategoriesNum.value.length; i++) {
+    if (playersCategoriesNum.value[i] === 4) {
+    finishedPlayer.value = listOfPlayerNames.value[i];
+    break; // Break out of the loop once a winner is found
+    }
+}
+}
+
   
 socket.on("game-state-specific", (playLives: Record<number,number>, newPhase:GamePhase, categoriesPlayersCompleted:  Record<number, number>) =>{
 //   console.log('please work', playLives)

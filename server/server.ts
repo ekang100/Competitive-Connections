@@ -197,6 +197,10 @@ io.on('connection', client => {
       console.log('checkpoint 1')
 
       const response = doAction(gameState, playerIndex)
+      if(gameState.phase === "game-over"){
+        console.log('emmm')
+        updateGamesWon(playerIndex)
+      }
       emitUpdatedTilesForPlayers(response.tiles)
     } else {
       // no actions allowed from "all"
