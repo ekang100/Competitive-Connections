@@ -220,21 +220,21 @@ io.on('connection', client => {
         console.log('emmm')
         updateGamesWon(playerIndex)
       }
-      emitUpdatedTilesForPlayers(response.tiles)
+      emitUpdatedTilesForPlayers(response)
     } else {
       // no actions allowed from "all"
     }
-    // io.to("all").emit(
-    //   "updated-tiles", 
-    //   Object.values(gameState.tilesById),    
-    // )
+    io.to("all").emit(
+       "updated-tiles", 
+       Object.values(gameState.tilesById),    
+     )
     // io.to("all").emit(
     //   "action-done",
     // )
-    io.to("all").emit(
-      "action-response",
-      { updatedTiles: Object.values(gameState.tilesById), oneAway: gameState.oneAway }
-    )
+    // io.to("all").emit(
+    //   "action-response",
+    //   { updatedTiles: Object.values(gameState.tilesById), oneAway: gameState.oneAway }
+    // )
     emitGameState()
 
     io.emit(
