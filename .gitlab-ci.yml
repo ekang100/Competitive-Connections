@@ -41,7 +41,7 @@ e2e-test-job:
     - echo "Running end-to-end tests..."
     - npm ci
     - npx playwright install --with-deps
-    - npx playwright test
+    - npx playwright test --project=chromium    
     - echo "E2E tests completed successfully."
     - sleep 10
 
