@@ -24,3 +24,7 @@ spec:
         env:
         - name: MONGO_URL
           value: mongodb://db
+        - name: DISABLE_SECURITY
+          value: connections-admin
+        - name: HOST
+          value: localhost
