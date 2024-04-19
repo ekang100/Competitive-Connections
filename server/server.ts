@@ -181,7 +181,7 @@ io.on('connection', client => {
       gameState.categoriesPlayersCompleted,
       currentConfig.board,
       currentConfig.mode, 
-      currentConfig.timeRemaining,
+      gameState.timeRemaining,
       // gameState.playCount,
       //can add here the list of players who won already since its in game state
     )
