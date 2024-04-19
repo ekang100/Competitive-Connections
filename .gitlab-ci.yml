@@ -39,6 +39,8 @@ e2e-test-job:
   stage: test
   script:
     - echo "Running end-to-end tests..."
+    - npm ci
+    - npx playwright install --with-deps
     - npx playwright test
     - echo "E2E tests completed successfully."
     - sleep 10
