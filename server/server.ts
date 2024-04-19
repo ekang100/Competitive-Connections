@@ -493,7 +493,20 @@ client.connect().then(async () => {
       console.log("you must supply ?key=" + DISABLE_SECURITY + " to log in via DISABLE_SECURITY")
       done(null, false)
     } else {
-      done(null, { name: req.query.user, preferred_username: req.query.user, roles: [].concat(req.query.role), email: req.query.email, id: req.query.user})
+      // add player to the database
+      const player = {
+        id: req.query.user,
+        username: req.query.user,
+        email: req.query.email,
+        gamesWon: 0,
+        roles: [].concat(req.query.role)
+      }
+      db.collection("players").updateOne(
+        { _id: player.id },
+        { $set: player },
+        { upsert: true }
+      ).then(() => done(null, { name: req.query.user, preferred_username: req.query.user, roles: [].concat(req.query.role), email: req.query.email, id: req.query.user}))
+        .catch(error => done(error, null))  
     }
   }))
 
@@ -520,24 +533,24 @@ client.connect().then(async () => {
       const groups = userInfo.groups;
       userInfo.roles = userInfo.groups.includes(OPERATOR_GROUP_ID) ? ["admin"] : ["player"]
 
-      // const player = {
-      //   id: userInfo.sub,
-      //   username: userInfo.preferred_username || userInfo.nickname,
-      //   email: userInfo.email,
-      //   gamesWon: 0,
-      //   roles: roles // Store the groups in the database as part of the player's record
-      // };
+      const player = {
+        id: userInfo.sub,
+        username: userInfo.preferred_username || userInfo.nickname,
+        email: userInfo.email,
+        gamesWon: 0,
+        roles: userInfo.roles // Store the groups in the database as part of the player's record
+      };
 
-      // db.collection("players").updateOne(
-      //   { _id: player.id },
-      //   { $set: player },
-      //   { upsert: true }
-      // ).then(() => done(null, userInfo))
-      //   .catch(error => done(error, null));
+      db.collection("players").updateOne(
+        { _id: player.id },
+        { $set: player },
+        { upsert: true }
+      ).then(() => done(null, userInfo))
+        .catch(error => done(error, null));
     
 
       // userInfo.roles = userInfo.groups.includes(OPERATOR_GROUP_ID) ? ["admin"] : ["player"]
-      return done(null, userInfo)
+      //return done(null, userInfo)
 
     }
 
