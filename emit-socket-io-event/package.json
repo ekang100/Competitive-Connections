@@ -1,0 +1,9 @@
+{
+  "dependencies": {
+    "socket.io-client": "^4.7.5"
+  },
+  "scripts": {
+    "start": "node emit.js"
+  },
+  "type": "module"
+}
