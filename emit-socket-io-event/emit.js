@@ -1,3 +1,13 @@
+
+//USE THE BELOW COMMAND
+
+//1) this command is for socket emitting
+//INDEX=1 URL=http://localhost:31000 EVENT='["action",{"playerIndex":1}]' npm start
+
+//2) this command is to protect the api
+// curl -X GET http://localhost:31000/api/game/players/count
+//this will return 'unauthorized'
+
 import { io } from 'socket.io-client'
 
 const URL = process.env.URL

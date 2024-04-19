@@ -161,7 +161,7 @@ io.on('connection', client => {
   // }
 
 
-  if (!user) {
+  if (!user) {          //this here checks if the user is authenticated before it logs in!!!
     console.log('xyz')
     client.disconnect()
     return
@@ -352,56 +352,57 @@ changedState
   })
 })
 
-// app routes
-app.post(
-  "/api/logout", 
-  (req, res, next) => {
-    req.logout((err) => {
+// Middleware to check if the user is authenticated
+function isAuthenticated(req: Request, res: Response, next: NextFunction) {
+  if (req.isAuthenticated()) {
+      // User is authenticated, proceed to the next middleware or route handler
+      return next();
+  } else {
+      // User is not authenticated, send an unauthorized error response
+      res.status(401).json({ error: 'Unauthorized' });
+  }
+}
+
+// Route to log out the user
+app.post("/api/logout", (req: Request, res: Response, next: NextFunction) => {
+  req.logout((err) => {
       if (err) {
-        return next(err)
+          return next(err);
       }
-      res.redirect("/")
-    })
-  }
-)
+      res.redirect("/");
+  });
+});
 
-app.get("/api/user", (req, res) => {
-  if(req.user == undefined){
-    console.log('user is undefined')
-  }
-  else{
-    console.log('no user is found')
-  }
-  res.json(req.user || {})
-})
+// Route to get the current authenticated user
+app.get("/api/user", isAuthenticated, (req: Request, res: Response) => {
+    // Since isAuthenticated middleware was successful, req.user is defined and authenticated
+    res.json(req.user || {});
+});
 
-app.get('/api/game/players/count', async (req, res) => {
+// Route to get player count; authentication check can be added as needed
+app.get('/api/game/players/count', isAuthenticated, async (req: Request, res: Response) => {
   const collection = db.collection('players');
-
   try {
-    const playersCount = await collection.countDocuments();
-    res.json({ playersCount });
+      const playersCount = await collection.countDocuments();
+      res.json({ playersCount });
   } catch (error) {
-    res.status(500).json({ error: 'Unable to fetch player count' });
+      res.status(500).json({ error: 'Unable to fetch player count' });
   }
 });
 
-app.get('/api/:player/gamesWon', async (req, res) => {
+// Route to get games won by a player
+app.get('/api/:player/gamesWon', isAuthenticated, async (req: Request, res: Response) => {
   const collection = db.collection('players');
-  const playerName = req.params.player; // Get the player name from the URL parameter
+  const playerName = req.params.player;
   try {
-      // Find the player in the collection based on the name
       const player = await collection.findOne({ username: playerName });
 
       if (player) {
-          // If the player is found, return their gamesWon data
           res.json({ gamesWon: player.gamesWon });
       } else {
-          // If the player is not found, return a 404 error
           res.status(404).json({ error: 'Player not found' });
       }
   } catch (error) {
-      // Handle any errors that occur during the query
       res.status(500).json({ error: 'Unable to fetch gamesWon data' });
   }
 });
