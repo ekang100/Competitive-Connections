@@ -9,6 +9,7 @@ import App from './App.vue'
 import Game from './views/Game.vue'
 import Start from './views/Start.vue'
 import End from './views/End.vue'
+import StartAdmin from './views/StartAdmin.vue'
 
 const routes = [
 	{
@@ -23,6 +24,10 @@ const routes = [
 	{
 		path: "/",
 		component: Start,
+	},
+	{
+		path: "/admin",
+		component: StartAdmin,
 	},
 	{
 		path: "/game-over",

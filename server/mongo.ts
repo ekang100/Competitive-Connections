@@ -85,6 +85,26 @@ async function main() {
   );
 
   // add data
+  // const players: Player[] = [
+  //   {
+  //     id: "1",
+  //     username: "ellie",
+  //     email: "ellie@test.com",
+  //     gamesWon: 0,
+  //     groups: [],
+  //   },
+  //   {
+  //     id: "2",
+  //     username: "tony",
+  //     email: "tony@test.com",
+  //     gamesWon: 0,
+  //     groups: [],
+  //   },
+  // ]
+
+  //console.log("inserting players", await db.collection("players").insertMany(players as any))
+
+
 //   console.log("inserting customers", await db.collection("customers").insertMany(customers as any))
 //   console.log("inserting operators", await db.collection("operators").insertMany(operators as any))
 //   console.log("inserting ingredients", await db.collection("possibleIngredients").insertMany(possibleIngredients as any))

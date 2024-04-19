@@ -1,7 +1,7 @@
 import { createServer } from "http"
 import { Server } from "socket.io"
 import {createEmptyGame, determineWinner, doAction, filterTilesForPlayerPerspective, getCurrentPuzzle } from "./model"
-import { Puzzle, PuzzleCategory, tileId, allPuzzles, Tile, Config, startGameTimer } from "./model"
+import { Puzzle, PuzzleCategory, tileId, allPuzzles, Tile, Config, startGameTimer, Player } from "./model"
 import express, { NextFunction, Request, Response } from 'express'
 import bodyParser from 'body-parser'
 import pino from 'pino'
@@ -11,6 +11,7 @@ import session from 'express-session'
 import MongoStore from 'connect-mongo'
 import { Issuer, Strategy, generators } from 'openid-client'
 import passport from 'passport'
+import { Strategy as CustomStrategy } from 'passport-custom'
 import { gitlab } from "./secrets"
 import { emit } from "process"
 
@@ -20,6 +21,17 @@ const mongoUrl = process.env.MONGO_URL || 'mongodb://db'      //changed
 
 const client = new MongoClient(mongoUrl)
 let db: Db
+let players: Collection<Player>
+
+const HOST = process.env.HOST || 'localhost'
+const OPERATOR_GROUP_ID = "competitive-connections-admin"
+const DISABLE_SECURITY = process.env.DISABLE_SECURITY
+
+const passportStrategies = [
+  ...(DISABLE_SECURITY ? ["disable-security"] : []),
+  "oidc",
+]
+
 
 // set up Express
 const app = express()
@@ -67,7 +79,7 @@ passport.serializeUser((user, done) => {
   console.log("serializeUser", user)
   done(null, user)
 })
-passport.deserializeUser((user, done) => {
+passport.deserializeUser((user: any, done) => {
   console.log("deserializeUser", user)
   done(null, user)
 })
@@ -99,6 +111,22 @@ io.use(wrap(sessionMiddleware))
 //   console.log('Puzzle not found!');
 // }
 ////////////////////
+
+export function checkRole(requiredRoles: string[]) {
+  return function (req: Request, res: Response, next: NextFunction) {
+    const roles = req.user?.roles || [];
+    const hasRequiredRole = roles.some((role: string) => requiredRoles.includes(role));
+    console.log("hasRequiredRole", hasRequiredRole)
+    if (hasRequiredRole) {
+      next(); // User has one of the required roles, proceed
+    } else {
+      console.log("hasRequiredRole2", hasRequiredRole)
+
+      res.status(403).json({ message: "Access denied: Insufficient permissions" });
+    }
+  };
+}
+
 
 
 
@@ -357,6 +385,7 @@ changedState
   })
 
   client.on("redirect", (url: string) => {
+    checkRole(["admin"])
     io.emit("redirect", url)
   })
 })
@@ -373,6 +402,43 @@ app.post(
     })
   }
 )
+
+app.get(
+  "/api/login", 
+  passport.authenticate(passportStrategies, { failureRedirect: "/api/login" }), 
+  (req, res) => res.redirect("/")
+)
+
+app.get('/login-callback', passport.authenticate(passportStrategies, {
+  successReturnToOrRedirect: '/',
+  failureRedirect: '/',
+}))
+
+app.get('/admin', checkRole(["admin"]), (req, res) => {
+  res.send("admin page")
+})
+
+app.get("/api/admin", checkRole(["customer"]), async (req, res) => {
+  if(req.user == undefined){
+    console.log('user is undefined')
+  }
+  else{
+    console.log('no user is found')
+  }
+  res.json(req.user || {})
+})
+
+app.get("/api/player", checkRole(["player"]), async (req, res) => {
+  if(req.user == undefined){
+    console.log('user is undefined')
+  }
+  else{
+    console.log('no user is found')
+  }
+  res.json(req.user || {})
+})
+
+
 
 app.get("/api/user", (req, res) => {
   if(req.user == undefined){
@@ -415,68 +481,71 @@ app.get('/api/:player/gamesWon', async (req, res) => {
   }
 });
 
+
 // connect to Mongo
-client.connect().then(() => {
+client.connect().then(async () => {
   logger.info('connected successfully to MongoDB')
   db = client.db("test")
-  // operators = db.collection('operators')
-  // orders = db.collection('orders')
-  // customers = db.collection('customers')
+  players = db.collection("players")
 
-  Issuer.discover("https://coursework.cs.duke.edu/").then(issuer => {
+  passport.use("disable-security", new CustomStrategy((req, done) => {
+    if (req.query.key !== DISABLE_SECURITY) {
+      console.log("you must supply ?key=" + DISABLE_SECURITY + " to log in via DISABLE_SECURITY")
+      done(null, false)
+    } else {
+      done(null, { name: req.query.user, preferred_username: req.query.user, roles: [].concat(req.query.role), email: req.query.email, id: req.query.user})
+    }
+  }))
+
+
+  {
+    const issuer = await Issuer.discover("https://coursework.cs.duke.edu/")
     const client = new issuer.Client(gitlab)
-  
+
     const params = {
       scope: 'openid profile email',
       nonce: generators.nonce(),
-      // redirect_uri: 'http://10.198.2.194:8221/login-callback', //this is ellies server
-      // redirect_uri: 'http://10.198.121.233:8221/login-callback', // this is eduroam: tonys server
-      // redirect_uri: 'http://10.197.59.172:8221/login-callback', // this is dukeblue: tonys server
-      redirect_uri:'http://localhost:31000/login-callback',
+      redirect_uri: `http://localhost:31000/login-callback`,
       state: generators.state(),
+
+      // this forces a fresh login screen every time
+      prompt: "login",
     }
-  
-    function verify(tokenSet: any, userInfo: any, done: (error: any, user: any) => void) {
+
+    async function verify(tokenSet: any, userInfo: any, done: (error: any, user: any) => void) {
       // Log the userInfo and tokenSet for debugging
       console.log('userInfo', userInfo);
       console.log('tokenSet', tokenSet);
       console.log('groups', userInfo.groups);
       const groups = userInfo.groups;
+      userInfo.roles = userInfo.groups.includes(OPERATOR_GROUP_ID) ? ["admin"] : ["player"]
 
-      const player = {
-        id: userInfo.sub,
-        username: userInfo.preferred_username || userInfo.nickname,
-        email: userInfo.email,
-        gamesWon: 0,
-        groups: groups // Store the groups in the database as part of the player's record
-      };
+      // const player = {
+      //   id: userInfo.sub,
+      //   username: userInfo.preferred_username || userInfo.nickname,
+      //   email: userInfo.email,
+      //   gamesWon: 0,
+      //   roles: roles // Store the groups in the database as part of the player's record
+      // };
 
-      db.collection("players").updateOne(
-        { _id: player.id },
-        { $set: player },
-        { upsert: true }
-      ).then(() => done(null, userInfo))
-        .catch(error => done(error, null));
+      // db.collection("players").updateOne(
+      //   { _id: player.id },
+      //   { $set: player },
+      //   { upsert: true }
+      // ).then(() => done(null, userInfo))
+      //   .catch(error => done(error, null));
+    
+
+      // userInfo.roles = userInfo.groups.includes(OPERATOR_GROUP_ID) ? ["admin"] : ["player"]
+      return done(null, userInfo)
+
     }
-  
+
     passport.use('oidc', new Strategy({ client, params }, verify))
 
-    app.get(
-      "/api/login", 
-      passport.authenticate("oidc", { failureRedirect: "/api/login" }), 
-      (req, res) => res.redirect("/")
-    )
-    
-    app.get(
-      "/login-callback",
-      passport.authenticate("oidc", {
-        successRedirect: "/",
-        failureRedirect: "/api/login",
-      })
-    )    
+  }
 
-    // start server
-    server.listen(port)
-    logger.info(`Game server listening on port ${port}`)
+  server.listen(port, () => {
+    logger.info(`listening on http://localhost:${port}`)
   })
 })

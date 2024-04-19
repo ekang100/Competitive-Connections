@@ -3,11 +3,11 @@
 import * as puzzlesData from "./puzzles.json";
 
 export interface Player{
-  id: "gitlabUserId",
-  username: "gitlabUsername",
-  email: "userEmail",
+  id: "gitlabUserId" | string,
+  username: "gitlabUsername" | string,
+  email: "userEmail" | string,
   gamesWon: number,
-  groups: ["competitive-connections-admin"]
+  roles: []
 }
 
 export interface Config {
