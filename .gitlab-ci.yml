@@ -38,9 +38,10 @@ build-images:
 e2e-test-job:
   stage: test
   script:
-    - echo "Running end-to-end tests... This will take about 120 seconds."
-    - sleep 5
+    - echo "Running end-to-end tests..."
+    - npx playwright test
     - echo "E2E tests completed successfully."
+    - sleep 10
 
 
 deploy-job:      # This job runs in the deploy stage.
