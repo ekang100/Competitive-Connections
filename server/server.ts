@@ -209,7 +209,7 @@ io.on('connection', client => {
       gameState.categoriesPlayersCompleted,
       currentConfig.board,
       currentConfig.mode, 
-      currentConfig.timeRemaining,
+      gameState.timeRemaining,
       currentConfig.randomizeBoard,
       gameState.oneAway,
       // gameState.playCount,
