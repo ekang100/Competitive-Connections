@@ -57,6 +57,7 @@
 <script setup lang="ts">
 import { io } from "socket.io-client"
 import { computed, ref } from "vue"
+import { useRouter } from "vue-router"
 const socket = io()
 const busy = ref(false)
 const isAdmin = ref(false)
@@ -67,6 +68,12 @@ const maxLives = ref(3)
 const timeRemaining = ref(100);
 const mode = ref("easy")
 const randomizeBoard = ref(false)
+const router = useRouter()
+ 
+
+//const props = defineProps<{ playerId: string }>()
+
+
 
 
 // const config = ref({ board: board.value, maxLives: maxLives.value, timeLimit: timeRemaining.value, mode: mode.value })
@@ -92,8 +99,8 @@ async function checkLoggedIn() {
 
 socket.on("connect", checkLoggedIn)
 
-socket.on("redirect", (url: string) => {
-    window.location.href = url
+socket.on("redirect", () => {
+    router.push(`/1`)
     socket.emit("new-game")
 })
 
@@ -101,7 +108,7 @@ socket.on("redirect", (url: string) => {
 
 async function startGame() {
     await new Promise<void>((resolve, reject) => {
-    socket.emit("redirect", "/0")
+    socket.emit("redirect")
     socket.once("redirect-reply",  (success: boolean) => {
         if (success) {
           resolve();
