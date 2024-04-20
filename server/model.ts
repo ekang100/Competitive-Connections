@@ -421,7 +421,7 @@ export function startGameTimer(gameState: GameState, timeSet: number) {
       }
 
       // Emit the remaining time
-      console.log(`Time remaining: ${gameState.timeRemaining} seconds`);
+      // console.log(`Time remaining: ${gameState.timeRemaining} seconds`);
 
   }, 1000); // Run the function every second
 }

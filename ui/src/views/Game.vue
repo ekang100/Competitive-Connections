@@ -34,7 +34,7 @@
     </span>
   </div>
 </div>
-    <b-button class="mx-2 my-2" size="sm" @click="socket.emit('new-game')">New Game</b-button>
+    <!-- <b-button class="mx-2 my-2" size="sm" @click="socket.emit('new-game')">New Game</b-button> -->
     <b-badge class="mr-2 mb-2">{{ phase }}</b-badge>
     <div class="board">
       <span
