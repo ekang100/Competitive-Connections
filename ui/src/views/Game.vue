@@ -218,7 +218,13 @@ const mode: Ref<string> = ref("");
 const randomizeBoard: Ref<boolean> = ref(false);
 const oneAway: Ref<String[]> = ref([]);
 
+// interface Props{
+//   playerId?: string
+// }
 
+// const props = withDefaults(defineProps<Props>(), {
+//   playerId: 'ellie'
+// })
 
 // const myTurn = computed(() => currentTurnPlayerIndex.value === playerIndex.value && phase.value !== "game-over")
 socket.on("game-time", (remainingTime: number) => {
