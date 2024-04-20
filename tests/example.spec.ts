@@ -39,7 +39,6 @@ await adminPage.locator('span').filter({ hasText: 'ESSENCE' }).click();
 await adminPage.locator('span').filter({ hasText: 'TIME' }).click();
 await adminPage.getByText('US').click();
 await adminPage.getByText('PEOPLE').click();
-await adminPage.waitForTimeout(100);
 await adminPage.getByRole('button', { name: 'Submit' }).click();
 
 
@@ -56,13 +55,11 @@ await adminPage.getByRole('button', { name: 'Submit' }).click();
 await adminPage.getByText('Guess Result: One away...').click();
 await adminPage.getByText('LEAGUE').click();
 await adminPage.getByText('LOAFER').click();
-await userPage.waitForTimeout(100);
 await adminPage.getByRole('button', { name: 'Submit' }).click();
 await adminPage.getByText('SEA').click();
 await adminPage.getByText('ARE').click();
 await adminPage.locator('span').filter({ hasText: /^FOOT$/ }).click();
 await adminPage.getByText('MILE').click();
-await adminPage.waitForTimeout(100);
 await adminPage.getByRole('button', { name: 'Submit' }).click();
 
 await userPage.getByText('PEOPLE').click();
@@ -73,13 +70,11 @@ await adminPage.getByText('FOOT', { exact: true }).click();
 await adminPage.getByText('MILE').click();
 await adminPage.locator('span').filter({ hasText: 'QUEUE' }).click();
 await adminPage.getByText('WHY').click();
-await adminPage.waitForTimeout(100);
 await adminPage.getByRole('button', { name: 'Submit' }).click();
 await adminPage.locator('span').filter({ hasText: 'YARD' }).click();
 await adminPage.getByText('LEAGUE').click();
 await adminPage.getByText('FOOT', { exact: true }).click();
 
-await userPage.waitForTimeout(100);
 await userPage.getByRole('button', { name: 'Submit' }).click();
 
 
@@ -90,12 +85,10 @@ await adminPage.waitForTimeout(1000);
 await userPage.waitForTimeout(1000);
 
 const loc = adminPage.locator('.winner-section');
-// await expect(loc).toContainText("🏆 Winner: ek199 🏆");
-await expect(loc).toContainText("Winner: anthony.cui");
+await expect(loc).toContainText("🏆 Winner: ek199 🏆");
 
 const loc2 = userPage.locator('.winner-section');
-//await expect(loc2).toContainText('🏆 Winner: ek199 🏆');
-await expect(loc).toContainText("Winner: anthony.cui");
+await expect(loc2).toContainText('🏆 Winner: ek199 🏆');
 
 await adminPage.getByRole('button', { name: 'Return Everyone to Menu' }).click();
   
