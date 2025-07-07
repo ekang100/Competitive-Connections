@@ -24,14 +24,14 @@ export default defineConfig({
 		port: 8221,
 		proxy: {
 			"^/socket.io": {
-				target: "http://localhost:8228",
+				target: "http://localhost:3001",
         ws: true
 			},
       "^/login-callback": {
-				target: "http://localhost:8228",
+				target: "http://localhost:3001",
 			},
       "^/api": {
-				target: "http://localhost:8228",
+				target: "http://localhost:3001",
 			},
     }
 	},

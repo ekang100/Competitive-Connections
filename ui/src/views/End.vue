@@ -246,4 +246,3 @@ if (playerName) {
 }
 
   </script>
-  

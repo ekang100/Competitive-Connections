@@ -58,6 +58,7 @@
 import { io } from "socket.io-client"
 import { computed, ref } from "vue"
 import { useRouter } from "vue-router"
+import { mockUser } from "../mockUser"
 const socket = io()
 const busy = ref(false)
 const isAdmin = ref(false)
@@ -80,8 +81,11 @@ const router = useRouter()
 const config = computed(() => ({ board: board.value, randomizeBoard: randomizeBoard.value, maxLives: maxLives.value, timeRemaining: timeRemaining.value, mode: mode.value }))
 
 async function checkAdmin() {
-    const admin = await (await fetch("/api/admin")).json()
-    if (admin) {
+   // const admin = await (await fetch("/api/admin")).json()
+
+    
+
+    if (mockUser.roles.includes("admin")) {
         isAdmin.value = true
     }
     else {
@@ -93,9 +97,9 @@ async function checkAdmin() {
 socket.on("connect", checkAdmin)
 
 async function checkLoggedIn() {
-    const user = await (await fetch("/api/user")).json()
-    isLoggedIn.value = user.name != null
+  isLoggedIn.value = mockUser.username != null
 }
+
 
 socket.on("connect", checkLoggedIn)
 

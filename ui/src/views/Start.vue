@@ -32,6 +32,8 @@
   import { io } from "socket.io-client"
   import { ref } from "vue"
   import { useRouter } from "vue-router";
+  import { mockUser } from "../mockUser"
+
   const socket = io()
   const isAdmin = ref(false)
   const isLoggedIn = ref(false)
@@ -51,14 +53,14 @@
   async function checkAdmin() {
       const user = await (await fetch("/api/user")).json()
       console.log("AHRIUHEAIURH", user)
-      isAdmin.value = user.groups.includes("competitive-connections-admin") || user.groups.includes("admin") || user.roles.includes("admin")
+      isAdmin.value = mockUser.roles.includes("admin")
   }
   
   socket.on("connect", checkAdmin)
   
   async function checkLoggedIn() {
       const user = await (await fetch("/api/user")).json()
-      isLoggedIn.value = user.name != null
+      isLoggedIn.value = mockUser.username != null
   }
   
   socket.on("connect", checkLoggedIn)
