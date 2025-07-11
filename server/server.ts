@@ -16,6 +16,14 @@ const io = new Server(server, {
   },
 })
 
+let gameConfig = {
+  board: 0,
+  randomizeBoard: false,
+  maxLives: 3,
+  timeRemaining: 100,
+  mode: "easy"
+}
+
 app.use(cors())
 app.use(express.json())
 
@@ -91,6 +99,24 @@ io.on('connection', (socket) => {
     }
     console.log(`❌ I love you cookie but the Socket disconnected: ${socket.id}`)
   })
+
+  socket.on("get-config", () => {
+    io.to(socket.id).emit("get-config-reply", gameConfig)
+  })
+
+  socket.on("update-config", (newConfig) => {
+    console.log("🛠️ Updating game config:", newConfig)
+    gameConfig = newConfig
+    io.to(socket.id).emit("update-config-reply", true)
+  })
+
+  socket.on("redirect", () => {
+    io.to(socket.id).emit("redirect")
+    io.to(socket.id).emit("redirect-reply", true)
+  })
+
+
+
 })
 
 // ✨ Dummy board generator
